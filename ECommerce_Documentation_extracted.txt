@@ -1,0 +1,1058 @@
+E-COMMERCE PLATFORM
+Full-Stack Development Documentation
+Frontend
+React + Tailwind CSS
+Backend
+ASP.NET Core + PostgreSQL
+Version 1.0   |   June 2026
+Table of Contents
+1. Project Overview
+2. Technology Stack
+3. System Architecture
+4. Project Structure
+5. Database Design
+6. Backend Setup — ASP.NET Core
+7. Frontend Setup — React + Tailwind CSS
+8. Core Features Implementation
+9. Authentication & Authorization
+10. API Endpoints Reference
+11. Payment Integration
+12. Deployment Guide
+13. Environment Variables
+14. Testing Strategy
+1. Project Overview
+This documentation covers the end-to-end development of a full-stack e-commerce web application. The platform enables customers to browse products, manage carts, place orders, and process payments — while providing administrators with tools to manage inventory, orders, and users.
+1.1 Goals & Objectives
+Build a responsive, performant storefront accessible on all devices
+Implement secure authentication with role-based access control
+Provide a robust REST API using ASP.NET Core
+Store all data reliably in a PostgreSQL relational database
+Support product catalog, cart, checkout, and order management
+Enable admin dashboard for inventory and order tracking
+1.2 Target Users
+User Role
+Description
+Key Capabilities
+Customer
+End-user shopper
+Browse, search, cart, checkout, order history
+Admin
+Store manager
+Manage products, orders, users, discounts
+Guest
+Unauthenticated visitor
+Browse catalog, view products, register
+2. Technology Stack
+2.1 Frontend
+Technology
+Version
+Purpose
+React
+18.x
+UI component library and SPA framework
+Vite
+5.x
+Lightning-fast build tool and dev server
+Tailwind CSS
+3.x
+Utility-first CSS for rapid UI styling
+React Router
+6.x
+Client-side routing and navigation
+Zustand
+4.x
+Lightweight global state management
+React Query (TanStack)
+5.x
+Server state, caching, and data fetching
+Axios
+1.x
+HTTP client for API requests
+React Hook Form
+7.x
+Performant form handling and validation
+Zod
+3.x
+Schema-based runtime validation
+Lucide React
+Latest
+Clean, consistent icon library
+2.2 Backend
+Technology
+Version
+Purpose
+ASP.NET Core
+8.0
+Web API framework
+Entity Framework Core
+8.x
+ORM for database access
+Npgsql
+8.x
+PostgreSQL provider for EF Core
+ASP.NET Core Identity
+8.x
+Authentication scaffolding
+JWT Bearer
+8.x
+Token-based auth middleware
+AutoMapper
+12.x
+Object-to-DTO mapping
+FluentValidation
+11.x
+Request model validation
+Serilog
+3.x
+Structured application logging
+Swagger / Swashbuckle
+6.x
+API documentation and testing UI
+2.3 Database & Infrastructure
+Technology
+Purpose
+PostgreSQL 16
+Primary relational database
+Redis (optional)
+Session caching and rate limiting
+Docker / Docker Compose
+Containerized local development
+Nginx
+Reverse proxy for production
+GitHub Actions
+CI/CD pipeline automation
+Cloudinary / AWS S3
+Product image storage
+3. System Architecture
+3.1 High-Level Architecture
+The application follows a clean client-server architecture with a clear separation between the React SPA frontend and the ASP.NET Core Web API backend.
+Pattern
+Layered Architecture: Presentation → API → Business Logic → Data Access → Database
+3.2 Architecture Layers
+Frontend (React SPA)
+Pages / Views — Route-level components (ProductListPage, CartPage, CheckoutPage)
+Components — Reusable UI pieces (ProductCard, Navbar, Modal, Button)
+Hooks — Custom React hooks for shared logic (useCart, useAuth, useProducts)
+Store (Zustand) — Global client state (cart items, auth user, UI state)
+Services — Axios API call wrappers (productService, authService, orderService)
+Backend (ASP.NET Core Web API)
+Controllers — HTTP request handlers, route definitions
+Services — Business logic and orchestration
+Repositories — Data access patterns abstracting EF Core queries
+Models / Entities — EF Core entity classes mapped to DB tables
+DTOs — Data Transfer Objects for API request/response shaping
+Middleware — Auth, logging, exception handling, CORS
+3.3 Data Flow
+User interacts with React UI (clicks 'Add to Cart')
+React component dispatches action or calls service function
+Axios sends HTTP request to ASP.NET Core API with JWT in Authorization header
+API middleware validates JWT, passes to controller
+Controller delegates to Service layer for business logic
+Service calls Repository, which queries PostgreSQL via EF Core
+Data flows back as DTO → JSON → React state → re-render
+4. Project Structure
+4.1 Repository Layout
+ecommerce/
+├── backend/                         # ASP.NET Core Web API
+│   ├── ECommerce.API/               # Main API project
+│   │   ├── Controllers/             # API controllers
+│   │   ├── DTOs/                    # Request & response models
+│   │   ├── Middleware/              # Custom middleware
+│   │   └── Program.cs              # App entry point
+│   ├── ECommerce.Application/       # Business logic / services
+│   │   ├── Services/               # Service interfaces + implementations
+│   │   ├── Validators/             # FluentValidation validators
+│   │   └── Mappings/               # AutoMapper profiles
+│   ├── ECommerce.Domain/            # Core domain entities
+│   │   ├── Entities/               # EF Core models
+│   │   └── Interfaces/             # Repository interfaces
+│   ├── ECommerce.Infrastructure/    # Data access layer
+│   │   ├── Data/                   # DbContext, migrations
+│   │   └── Repositories/           # Repository implementations
+│   └── ECommerce.Tests/             # Unit & integration tests
+│
+├── frontend/                        # React + Tailwind app
+│   ├── public/                      # Static assets
+│   ├── src/
+│   │   ├── components/              # Shared UI components
+│   │   │   ├── ui/                 # Base components (Button, Input, Modal)
+│   │   │   ├── layout/             # Navbar, Footer, Sidebar
+│   │   │   └── product/            # ProductCard, ProductGrid, etc.
+│   │   ├── pages/                  # Route-level page components
+│   │   ├── hooks/                  # Custom React hooks
+│   │   ├── services/               # API service layer (Axios)
+│   │   ├── store/                  # Zustand global state
+│   │   ├── types/                  # TypeScript interfaces
+│   │   ├── utils/                  # Helpers, formatters
+│   │   ├── App.tsx                 # Root component + routes
+│   │   └── main.tsx                # Vite entry point
+│   ├── index.html
+│   ├── tailwind.config.ts
+│   └── vite.config.ts
+│
+├── docker-compose.yml               # Local dev containers
+└── README.md
+5. Database Design
+5.1 Entity Relationship Overview
+PostgreSQL is used as the primary database. Entity Framework Core manages migrations and schema. The following tables form the core schema:
+Table
+Description
+Key Relationships
+Users
+Registered customer/admin accounts
+One-to-many with Orders, Addresses
+Products
+Product catalog items
+Many-to-many with Categories; One-to-many with Images
+Categories
+Product classification tree
+Self-referencing for subcategories
+ProductImages
+Photos linked to products
+Many-to-one with Products
+Orders
+Customer purchase records
+One-to-many with OrderItems; Many-to-one with Users
+OrderItems
+Line items within an order
+Many-to-one with Orders and Products
+CartItems
+In-progress shopping cart
+Many-to-one with Users and Products
+Addresses
+Shipping/billing addresses
+Many-to-one with Users
+Reviews
+Product ratings and comments
+Many-to-one with Users and Products
+Coupons
+Discount code definitions
+Referenced by Orders
+5.2 Key Entity Definitions (C#)
+User Entity
+// Domain/Entities/User.cs
+public class User : IdentityUser<Guid>
+{
+public string FirstName { get; set; } = string.Empty;
+public string LastName  { get; set; } = string.Empty;
+public string? AvatarUrl { get; set; }
+public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+public ICollection<Order>    Orders    { get; set; } = new List<Order>();
+public ICollection<Address>  Addresses { get; set; } = new List<Address>();
+public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+public ICollection<Review>   Reviews   { get; set; } = new List<Review>();
+}
+Product Entity
+// Domain/Entities/Product.cs
+public class Product
+{
+public Guid   Id          { get; set; } = Guid.NewGuid();
+public string Name        { get; set; } = string.Empty;
+public string Slug        { get; set; } = string.Empty;
+public string Description { get; set; } = string.Empty;
+public decimal Price      { get; set; }
+public decimal? SalePrice { get; set; }
+public int StockQty       { get; set; }
+public bool IsActive      { get; set; } = true;
+public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+public Guid CategoryId    { get; set; }
+public Category Category  { get; set; } = null!;
+public ICollection<ProductImage> Images  { get; set; } = new List<ProductImage>();
+public ICollection<OrderItem>    OrderItems { get; set; } = new List<OrderItem>();
+public ICollection<Review>       Reviews { get; set; } = new List<Review>();
+}
+Order Entity
+// Domain/Entities/Order.cs
+public class Order
+{
+public Guid   Id          { get; set; } = Guid.NewGuid();
+public Guid   UserId      { get; set; }
+public User   User        { get; set; } = null!;
+public decimal SubTotal   { get; set; }
+public decimal Discount   { get; set; }
+public decimal Total      { get; set; }
+public OrderStatus Status { get; set; } = OrderStatus.Pending;
+public string? CouponCode { get; set; }
+public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+public Guid    ShippingAddressId { get; set; }
+public Address ShippingAddress   { get; set; } = null!;
+public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+}
+public enum OrderStatus { Pending, Processing, Shipped, Delivered, Cancelled }
+6. Backend Setup — ASP.NET Core
+6.1 Prerequisites
+.NET 8 SDK — https://dotnet.microsoft.com/download
+PostgreSQL 16 installed locally or via Docker
+Visual Studio 2022 / VS Code with C# extension
+6.2 Create the Solution
+# Create solution and projects
+dotnet new sln -n ECommerce
+dotnet new webapi -n ECommerce.API --framework net8.0
+dotnet new classlib -n ECommerce.Application
+dotnet new classlib -n ECommerce.Domain
+dotnet new classlib -n ECommerce.Infrastructure
+dotnet new xunit -n ECommerce.Tests
+# Add all projects to solution
+dotnet sln add ECommerce.API ECommerce.Application ECommerce.Domain ECommerce.Infrastructure ECommerce.Tests
+# Set project references
+dotnet add ECommerce.API/ECommerce.API.csproj reference ECommerce.Application/ECommerce.Application.csproj
+dotnet add ECommerce.Application/ECommerce.Application.csproj reference ECommerce.Domain/ECommerce.Domain.csproj
+dotnet add ECommerce.Infrastructure/ECommerce.Infrastructure.csproj reference ECommerce.Domain/ECommerce.Domain.csproj
+6.3 Install NuGet Packages
+# ECommerce.API
+dotnet add ECommerce.API package Microsoft.AspNetCore.Authentication.JwtBearer
+dotnet add ECommerce.API package Swashbuckle.AspNetCore
+dotnet add ECommerce.API package Serilog.AspNetCore
+# ECommerce.Application
+dotnet add ECommerce.Application package AutoMapper
+dotnet add ECommerce.Application package FluentValidation.AspNetCore
+# ECommerce.Infrastructure
+dotnet add ECommerce.Infrastructure package Microsoft.EntityFrameworkCore
+dotnet add ECommerce.Infrastructure package Npgsql.EntityFrameworkCore.PostgreSQL
+dotnet add ECommerce.Infrastructure package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+dotnet add ECommerce.Infrastructure package Microsoft.EntityFrameworkCore.Tools
+6.4 Database Context (EF Core)
+// Infrastructure/Data/AppDbContext.cs
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+{
+public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+public DbSet<Product>      Products      => Set<Product>();
+public DbSet<Category>     Categories    => Set<Category>();
+public DbSet<Order>        Orders        => Set<Order>();
+public DbSet<OrderItem>    OrderItems    => Set<OrderItem>();
+public DbSet<CartItem>     CartItems     => Set<CartItem>();
+public DbSet<Review>       Reviews       => Set<Review>();
+public DbSet<Address>      Addresses     => Set<Address>();
+public DbSet<Coupon>       Coupons       => Set<Coupon>();
+protected override void OnModelCreating(ModelBuilder builder)
+{
+base.OnModelCreating(builder);
+builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+// Rename Identity tables
+builder.Entity<User>().ToTable("Users");
+builder.Entity<IdentityRole<Guid>>().ToTable("Roles");
+}
+}
+6.5 Program.cs Configuration
+// API/Program.cs
+var builder = WebApplication.CreateBuilder(args);
+// PostgreSQL + EF Core
+builder.Services.AddDbContext<AppDbContext>(opt =>
+opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Identity
+builder.Services.AddIdentity<User, IdentityRole<Guid>>(opt => {
+opt.Password.RequiredLength = 8;
+opt.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(opt => {
+opt.TokenValidationParameters = new TokenValidationParameters {
+ValidateIssuer = true,
+ValidateAudience = true,
+ValidateLifetime = true,
+ValidateIssuerSigningKey = true,
+ValidIssuer   = builder.Configuration["Jwt:Issuer"],
+ValidAudience = builder.Configuration["Jwt:Audience"],
+IssuerSigningKey = new SymmetricSecurityKey(
+Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+};
+});
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+// CORS for React frontend
+builder.Services.AddCors(opt => opt.AddPolicy("ReactApp", p =>
+p.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader()));
+// Register services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+var app = builder.Build();
+app.UseCors("ReactApp");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSwagger(); app.UseSwaggerUI();
+app.MapControllers();
+app.Run();
+6.6 Running Migrations
+# Add initial migration
+dotnet ef migrations add InitialCreate --project ECommerce.Infrastructure --startup-project ECommerce.API
+# Apply migrations to PostgreSQL
+dotnet ef database update --project ECommerce.Infrastructure --startup-project ECommerce.API
+7. Frontend Setup — React + Tailwind CSS
+7.1 Initialize Vite + React + TypeScript
+# Scaffold the project
+npm create vite@latest frontend -- --template react-ts
+cd frontend
+npm install
+# Install Tailwind CSS
+npm install -D tailwindcss@3 postcss autoprefixer
+npx tailwindcss init -p
+# Core dependencies
+npm install react-router-dom axios @tanstack/react-query zustand
+npm install react-hook-form @hookform/resolvers zod
+npm install lucide-react clsx tailwind-merge
+7.2 Tailwind Configuration
+// tailwind.config.ts
+import type { Config } from 'tailwindcss'
+export default {
+content: ['./index.html', './src/**/*.{ts,tsx}'],
+theme: {
+extend: {
+colors: {
+primary: {
+50:  '#EFF6FF',
+500: '#3B82F6',
+600: '#2563EB',
+700: '#1D4ED8',
+900: '#1E3A5F'
+}
+},
+fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+}
+},
+plugins: []
+} satisfies Config
+7.3 Main.tsx & App.tsx
+// src/main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import App from './App'
+import './index.css'
+const queryClient = new QueryClient()
+ReactDOM.createRoot(document.getElementById('root')!).render(
+<React.StrictMode>
+<QueryClientProvider client={queryClient}>
+<BrowserRouter>
+<App />
+</BrowserRouter>
+</QueryClientProvider>
+</React.StrictMode>
+)
+// src/App.tsx
+import { Routes, Route } from 'react-router-dom'
+import Layout from './components/layout/Layout'
+import HomePage from './pages/HomePage'
+import ProductListPage from './pages/ProductListPage'
+import ProductDetailPage from './pages/ProductDetailPage'
+import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import OrderHistoryPage from './pages/OrderHistoryPage'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import ProtectedRoute from './components/ProtectedRoute'
+export default function App() {
+return (
+<Routes>
+<Route path='/' element={<Layout />}>
+<Route index element={<HomePage />} />
+<Route path='products' element={<ProductListPage />} />
+<Route path='products/:slug' element={<ProductDetailPage />} />
+<Route path='cart' element={<CartPage />} />
+<Route path='login' element={<LoginPage />} />
+<Route path='register' element={<RegisterPage />} />
+<Route element={<ProtectedRoute />}>
+<Route path='checkout' element={<CheckoutPage />} />
+<Route path='orders' element={<OrderHistoryPage />} />
+</Route>
+<Route element={<ProtectedRoute adminOnly />}>
+<Route path='admin/*' element={<AdminDashboard />} />
+</Route>
+</Route>
+</Routes>
+)
+}
+7.4 Axios API Service Setup
+// src/services/api.ts
+import axios from 'axios'
+import { useAuthStore } from '../store/authStore'
+export const api = axios.create({
+baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+headers: { 'Content-Type': 'application/json' }
+})
+// Attach JWT token to every request
+api.interceptors.request.use(config => {
+const token = useAuthStore.getState().token
+if (token) config.headers.Authorization = `Bearer ${token}`
+return config
+})
+// Handle 401 — redirect to login
+api.interceptors.response.use(
+res => res,
+err => {
+if (err.response?.status === 401) useAuthStore.getState().logout()
+return Promise.reject(err)
+}
+)
+8. Core Features Implementation
+8.1 Product Catalog
+Backend — Products Controller
+// API/Controllers/ProductsController.cs
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+private readonly IProductService _productService;
+public ProductsController(IProductService productService)
+=> _productService = productService;
+[HttpGet]
+public async Task<IActionResult> GetAll(
+[FromQuery] string? search,
+[FromQuery] Guid? categoryId,
+[FromQuery] decimal? minPrice,
+[FromQuery] decimal? maxPrice,
+[FromQuery] string? sortBy = "createdAt",
+[FromQuery] int page = 1,
+[FromQuery] int pageSize = 12)
+{
+var result = await _productService.GetPagedAsync(
+search, categoryId, minPrice, maxPrice, sortBy, page, pageSize);
+return Ok(result);
+}
+[HttpGet("{slug}")]
+public async Task<IActionResult> GetBySlug(string slug)
+{
+var product = await _productService.GetBySlugAsync(slug);
+return product == null ? NotFound() : Ok(product);
+}
+[HttpPost]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
+{
+var product = await _productService.CreateAsync(dto);
+return CreatedAtAction(nameof(GetBySlug), new { slug = product.Slug }, product);
+}
+[HttpPut("{id}")]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductDto dto)
+{
+await _productService.UpdateAsync(id, dto);
+return NoContent();
+}
+[HttpDelete("{id}")]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> Delete(Guid id)
+{
+await _productService.DeleteAsync(id);
+return NoContent();
+}
+}
+Frontend — Product List Page
+// src/pages/ProductListPage.tsx
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { productService } from '../services/productService'
+import ProductCard from '../components/product/ProductCard'
+import ProductFilters from '../components/product/ProductFilters'
+export default function ProductListPage() {
+const [filters, setFilters] = useState({ search: '', categoryId: '', page: 1 })
+const { data, isLoading } = useQuery({
+queryKey: ['products', filters],
+queryFn: () => productService.getAll(filters)
+})
+return (
+<div className='max-w-7xl mx-auto px-4 py-8'>
+<div className='flex gap-8'>
+<aside className='w-64 shrink-0'>
+<ProductFilters filters={filters} onChange={setFilters} />
+</aside>
+<main className='flex-1'>
+{isLoading ? (
+<div className='grid grid-cols-3 gap-6'>
+{[...Array(6)].map((_, i) => <ProductCardSkeleton key={i} />)}
+</div>
+) : (
+<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+{data?.items.map(p => <ProductCard key={p.id} product={p} />)}
+</div>
+)}
+</main>
+</div>
+</div>
+)
+}
+8.2 Shopping Cart
+Zustand Cart Store
+// src/store/cartStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+interface CartItem { id: string; name: string; price: number; qty: number; imageUrl: string }
+interface CartStore {
+items: CartItem[]
+addItem: (item: Omit<CartItem, 'qty'>) => void
+removeItem: (id: string) => void
+updateQty: (id: string, qty: number) => void
+clearCart: () => void
+total: () => number
+}
+export const useCartStore = create<CartStore>()(persist(
+(set, get) => ({
+items: [],
+addItem: (item) => set(state => {
+const existing = state.items.find(i => i.id === item.id)
+if (existing) return { items: state.items.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i) }
+return { items: [...state.items, { ...item, qty: 1 }] }
+}),
+removeItem: (id) => set(state => ({ items: state.items.filter(i => i.id !== id) })),
+updateQty: (id, qty) => set(state => ({ items: state.items.map(i => i.id === id ? { ...i, qty } : i) })),
+clearCart: () => set({ items: [] }),
+total: () => get().items.reduce((sum, i) => sum + i.price * i.qty, 0)
+}),
+{ name: 'cart-storage' }
+))
+8.3 Checkout Flow
+User reviews cart items and quantities on CartPage
+User clicks 'Proceed to Checkout' (requires auth)
+CheckoutPage shows order summary + shipping address form
+User selects/adds shipping address, applies coupon code
+User enters payment details (Stripe Elements)
+Frontend calls POST /api/orders with cart data
+Backend creates Order, OrderItems, processes payment via Stripe
+On success, cart is cleared and user sees OrderConfirmationPage
+9. Authentication & Authorization
+9.1 Auth Service (Backend)
+// Application/Services/AuthService.cs
+public class AuthService : IAuthService
+{
+private readonly UserManager<User> _userManager;
+private readonly IConfiguration _config;
+public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+{
+var user = await _userManager.FindByEmailAsync(dto.Email)
+?? throw new UnauthorizedException("Invalid credentials");
+if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+throw new UnauthorizedException("Invalid credentials");
+var token = GenerateJwtToken(user);
+return new AuthResponseDto { Token = token, User = MapToDto(user) };
+}
+private string GenerateJwtToken(User user)
+{
+var claims = new[]
+{
+new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+new Claim(ClaimTypes.Email, user.Email!),
+new Claim(ClaimTypes.Role, "Customer") // or Admin
+};
+var key  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+var token = new JwtSecurityToken(
+issuer:   _config["Jwt:Issuer"],
+audience: _config["Jwt:Audience"],
+claims:   claims,
+expires:  DateTime.UtcNow.AddDays(7),
+signingCredentials: creds);
+return new JwtSecurityTokenHandler().WriteToken(token);
+}
+}
+9.2 Auth Store (Frontend)
+// src/store/authStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+interface AuthStore {
+token: string | null
+user: { id: string; email: string; role: string } | null
+login: (token: string, user: AuthStore['user']) => void
+logout: () => void
+isAdmin: () => boolean
+}
+export const useAuthStore = create<AuthStore>()(persist(
+(set, get) => ({
+token: null,
+user: null,
+login: (token, user) => set({ token, user }),
+logout: () => set({ token: null, user: null }),
+isAdmin: () => get().user?.role === 'Admin'
+}),
+{ name: 'auth-storage' }
+))
+9.3 Protected Route Component
+// src/components/ProtectedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
+interface Props { adminOnly?: boolean }
+export default function ProtectedRoute({ adminOnly = false }: Props) {
+const { token, isAdmin } = useAuthStore()
+if (!token) return <Navigate to='/login' replace />
+if (adminOnly && !isAdmin()) return <Navigate to='/' replace />
+return <Outlet />
+}
+10. API Endpoints Reference
+10.1 Authentication
+Method
+Endpoint
+Auth
+Description
+POST
+/api/auth/register
+None
+Register a new customer account
+POST
+/api/auth/login
+None
+Login and receive JWT token
+POST
+/api/auth/refresh
+JWT
+Refresh access token
+POST
+/api/auth/logout
+JWT
+Invalidate current token
+GET
+/api/auth/me
+JWT
+Get current authenticated user profile
+10.2 Products
+Method
+Endpoint
+Auth
+Description
+GET
+/api/products
+None
+List products with search, filter, pagination
+GET
+/api/products/{slug}
+None
+Get single product by URL slug
+POST
+/api/products
+Admin
+Create a new product
+PUT
+/api/products/{id}
+Admin
+Update an existing product
+DELETE
+/api/products/{id}
+Admin
+Delete a product
+POST
+/api/products/{id}/images
+Admin
+Upload product images
+10.3 Cart
+Method
+Endpoint
+Auth
+Description
+GET
+/api/cart
+JWT
+Get current user's cart
+POST
+/api/cart/items
+JWT
+Add item to cart
+PUT
+/api/cart/items/{id}
+JWT
+Update item quantity
+DELETE
+/api/cart/items/{id}
+JWT
+Remove item from cart
+DELETE
+/api/cart
+JWT
+Clear entire cart
+10.4 Orders
+Method
+Endpoint
+Auth
+Description
+GET
+/api/orders
+JWT
+List current user's orders
+GET
+/api/orders/{id}
+JWT
+Get order details
+POST
+/api/orders
+JWT
+Place a new order (checkout)
+GET
+/api/orders/admin
+Admin
+List all orders (admin view)
+PATCH
+/api/orders/{id}/status
+Admin
+Update order status
+10.5 Reviews & Categories
+Method
+Endpoint
+Auth
+Description
+GET
+/api/categories
+None
+List all categories
+POST
+/api/categories
+Admin
+Create category
+GET
+/api/products/{id}/reviews
+None
+Get reviews for a product
+POST
+/api/products/{id}/reviews
+JWT
+Post a review (one per user/product)
+DELETE
+/api/reviews/{id}
+Admin/Owner
+Delete a review
+11. Payment Integration (Stripe)
+11.1 Backend — Stripe Checkout
+# Install Stripe NuGet package
+dotnet add ECommerce.API package Stripe.net
+// API/Controllers/PaymentsController.cs
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class PaymentsController : ControllerBase
+{
+[HttpPost("create-intent")]
+public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentIntentDto dto)
+{
+StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
+var options = new PaymentIntentCreateOptions
+{
+Amount   = (long)(dto.Amount * 100), // Convert to cents
+Currency = "usd",
+AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions { Enabled = true }
+};
+var service = new PaymentIntentService();
+var intent  = await service.CreateAsync(options);
+return Ok(new { clientSecret = intent.ClientSecret });
+}
+[HttpPost("webhook")]
+[AllowAnonymous]
+public async Task<IActionResult> Webhook()
+{
+var payload   = await new StreamReader(Request.Body).ReadToEndAsync();
+var signature = Request.Headers["Stripe-Signature"];
+var evt = EventUtility.ConstructEvent(payload, signature, _config["Stripe:WebhookSecret"]);
+if (evt.Type == Events.PaymentIntentSucceeded)
+{
+// Mark order as paid, trigger fulfillment
+}
+return Ok();
+}
+}
+11.2 Frontend — Stripe Elements
+npm install @stripe/react-stripe-js @stripe/stripe-js
+// src/components/checkout/PaymentForm.tsx
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+export default function PaymentForm({ onSuccess }: { onSuccess: () => void }) {
+const stripe   = useStripe()
+const elements = useElements()
+const handleSubmit = async (e: React.FormEvent) => {
+e.preventDefault()
+if (!stripe || !elements) return
+const { error } = await stripe.confirmPayment({
+elements,
+confirmParams: { return_url: window.location.origin + '/order-success' }
+})
+if (error) console.error(error.message)
+else onSuccess()
+}
+return (
+<form onSubmit={handleSubmit} className='space-y-4'>
+<PaymentElement />
+<button type='submit' className='w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition'>
+Pay Now
+</button>
+</form>
+)
+}
+12. Deployment Guide
+12.1 Docker Compose (Local Dev)
+# docker-compose.yml
+version: '3.9'
+services:
+postgres:
+image: postgres:16-alpine
+environment:
+POSTGRES_DB: ecommerce
+POSTGRES_USER: admin
+POSTGRES_PASSWORD: supersecret
+ports:
+- '5432:5432'
+volumes:
+- pgdata:/var/lib/postgresql/data
+api:
+build: ./backend
+ports:
+- '5000:80'
+environment:
+- ConnectionStrings__DefaultConnection=Host=postgres;Database=ecommerce;Username=admin;Password=supersecret
+- Jwt__Key=your-super-secret-jwt-key-at-least-32-chars
+- Jwt__Issuer=https://yourdomain.com
+- Jwt__Audience=https://yourdomain.com
+depends_on: [postgres]
+frontend:
+build: ./frontend
+ports:
+- '3000:80'
+environment:
+- VITE_API_URL=http://localhost:5000/api
+volumes:
+pgdata:
+12.2 Production Deployment Steps
+Provision a VPS (Ubuntu 22.04) or use a cloud provider (AWS, Azure, Render)
+Install Docker and Docker Compose on the server
+Point your domain to the server IP via DNS A records
+Install Nginx and configure reverse proxy for /api and / routes
+Obtain SSL certificate via Let's Encrypt (certbot)
+Set all environment variables as secrets in GitHub Actions
+Push to main branch — CI/CD pipeline builds, tests, and deploys
+12.3 Nginx Configuration
+# /etc/nginx/sites-available/ecommerce
+server {
+listen 443 ssl;
+server_name yourdomain.com;
+# SSL certs from Let's Encrypt
+ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+# React frontend
+location / {
+proxy_pass http://localhost:3000;
+proxy_set_header Host $host;
+}
+# ASP.NET Core API
+location /api/ {
+proxy_pass http://localhost:5000;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+}
+}
+13. Environment Variables
+13.1 Backend — appsettings.json
+Variable
+Description
+Example
+ConnectionStrings:DefaultConnection
+PostgreSQL connection string
+Host=localhost;Database=ecommerce;Username=admin;Password=secret
+Jwt:Key
+Secret key for signing JWT tokens (min 32 chars)
+your-very-long-secret-signing-key
+Jwt:Issuer
+JWT issuer claim
+https://yourdomain.com
+Jwt:Audience
+JWT audience claim
+https://yourdomain.com
+Stripe:SecretKey
+Stripe secret API key
+sk_live_...
+Stripe:WebhookSecret
+Stripe webhook signing secret
+whsec_...
+Cloudinary:CloudName
+Cloud name for image storage
+my-cloud
+Cloudinary:ApiKey
+Cloudinary API key
+123456789
+Cloudinary:ApiSecret
+Cloudinary API secret
+abc123secret
+13.2 Frontend — .env
+Variable
+Description
+Example
+VITE_API_URL
+Base URL of the ASP.NET Core API
+https://api.yourdomain.com/api
+VITE_STRIPE_PUBLISHABLE_KEY
+Stripe publishable key
+pk_live_...
+14. Testing Strategy
+14.1 Backend Testing (xUnit)
+# Install test packages
+dotnet add ECommerce.Tests package Moq
+dotnet add ECommerce.Tests package FluentAssertions
+dotnet add ECommerce.Tests package Microsoft.EntityFrameworkCore.InMemory
+// Tests/Services/ProductServiceTests.cs
+public class ProductServiceTests
+{
+private readonly Mock<IProductRepository> _repoMock = new();
+private readonly ProductService _service;
+public ProductServiceTests()
+=> _service = new ProductService(_repoMock.Object);
+[Fact]
+public async Task GetBySlug_ReturnsProduct_WhenExists()
+{
+var product = new Product { Id = Guid.NewGuid(), Slug = "test-product" };
+_repoMock.Setup(r => r.GetBySlugAsync("test-product")).ReturnsAsync(product);
+var result = await _service.GetBySlugAsync("test-product");
+result.Should().NotBeNull();
+result!.Slug.Should().Be("test-product");
+}
+}
+14.2 Frontend Testing (Vitest + Testing Library)
+npm install -D vitest @testing-library/react @testing-library/user-event jsdom
+// src/components/product/ProductCard.test.tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import ProductCard from './ProductCard'
+const mockProduct = {
+id: '1', name: 'Test Product', price: 49.99, slug: 'test-product',
+imageUrl: '/img.jpg', category: 'Electronics'
+}
+test('renders product name and price', () => {
+render(<ProductCard product={mockProduct} />)
+expect(screen.getByText('Test Product')).toBeInTheDocument()
+expect(screen.getByText('$49.99')).toBeInTheDocument()
+})
+test('add to cart button calls handler', async () => {
+const onAdd = vi.fn()
+render(<ProductCard product={mockProduct} onAddToCart={onAdd} />)
+await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+expect(onAdd).toHaveBeenCalledWith(mockProduct)
+})
+14.3 Testing Checklist
+Area
+Type
+Tools
+Coverage Target
+Business Logic
+Unit Tests
+xUnit + Moq
+≥ 80%
+API Controllers
+Integration Tests
+WebApplicationFactory
+≥ 70%
+Database Queries
+Integration Tests
+EF In-Memory / Testcontainers
+Key queries
+React Components
+Unit Tests
+Vitest + Testing Library
+Key components
+User Flows
+E2E Tests
+Playwright
+Critical paths
+API Contracts
+Contract Tests
+Postman / Newman
+All endpoints
+— End of Documentation —
+Built with React · Tailwind CSS · ASP.NET Core · PostgreSQL
