@@ -18,6 +18,21 @@ type CartStore = {
   mergeGuestCartToServer: () => Promise<void>
 }
 
+const tempCartStorageKey = 'tempCart'
+
+const syncTempCartStorage = (items: CartLine[]) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  if (items.length === 0) {
+    window.localStorage.removeItem(tempCartStorageKey)
+    return
+  }
+
+  window.localStorage.setItem(tempCartStorageKey, JSON.stringify(items))
+}
+
 const toGuestLine = (product: Product, quantity = 1): CartLine => ({
   id: product.id,
   productId: product.id,
@@ -66,7 +81,11 @@ export const useCartStore = create<CartStore>()(
       addItem: async (product) => {
         const token = useAuthStore.getState().token
         if (!token) {
-          set((state) => ({ items: mergeGuestLine(state.items, product) }))
+          set((state) => {
+            const items = mergeGuestLine(state.items, product)
+            syncTempCartStorage(items)
+            return { items }
+          })
           return
         }
 
@@ -86,15 +105,18 @@ export const useCartStore = create<CartStore>()(
       updateQuantity: async (itemId, quantity) => {
         const token = useAuthStore.getState().token
         if (!token) {
-          set((state) => ({
-            items: state.items
+          set((state) => {
+            const items = state.items
               .map((item) =>
                 item.id === itemId
                   ? { ...item, quantity: Math.max(1, Math.min(quantity, item.availableStock)) }
                   : item,
               )
-              .filter((item) => item.quantity > 0),
-          }))
+              .filter((item) => item.quantity > 0)
+
+            syncTempCartStorage(items)
+            return { items }
+          })
           return
         }
 
@@ -127,9 +149,11 @@ export const useCartStore = create<CartStore>()(
       removeItem: async (itemId) => {
         const token = useAuthStore.getState().token
         if (!token) {
-          set((state) => ({
-            items: state.items.filter((item) => item.id !== itemId),
-          }))
+          set((state) => {
+            const items = state.items.filter((item) => item.id !== itemId)
+            syncTempCartStorage(items)
+            return { items }
+          })
           return
         }
 
@@ -150,6 +174,7 @@ export const useCartStore = create<CartStore>()(
       clearCart: async () => {
         const token = useAuthStore.getState().token
         if (!token) {
+          syncTempCartStorage([])
           set({ items: [] })
           return
         }
@@ -165,7 +190,10 @@ export const useCartStore = create<CartStore>()(
           throw error
         }
       },
-      resetLocalCart: () => set({ items: [] }),
+      resetLocalCart: () => {
+        syncTempCartStorage([])
+        set({ items: [] })
+      },
       syncServerCart: async () => {
         const token = useAuthStore.getState().token
         if (!token) return
@@ -173,6 +201,7 @@ export const useCartStore = create<CartStore>()(
         set({ isSyncing: true })
         try {
           const response = await cartService.getCart()
+          syncTempCartStorage([])
           set({ items: hydrateServerItems(response.items), isSyncing: false })
         } catch (error) {
           set({ isSyncing: false })
@@ -194,6 +223,7 @@ export const useCartStore = create<CartStore>()(
           )
 
           const response = await cartService.mergeItems(mergeItems, createIdempotencyKey())
+          syncTempCartStorage([])
           set({ items: hydrateServerItems(response.items), isSyncing: false })
         } catch (error) {
           set({ isSyncing: false })

@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, PackageCheck, ShieldCheck, ShoppingCart, Star, Truck } from 'lucide-react'
+import { PackageCheck, ShieldCheck, ShoppingCart, Star, Truck } from 'lucide-react'
+import backIcon from '@/assets/backicon.png'
 import { Button } from '@/components/ui/button'
 import ProductGrid from '@/components/product/ProductGrid'
+import { getProductImageClass, getProductImageSurfaceClass } from '@/lib/productImage'
 import { productService } from '@/services/productService'
 import { useCartStore } from '@/store/cartStore'
 import { formatCurrency } from '@/utils/format'
@@ -22,9 +24,6 @@ export default function ProductDetailPage() {
   })
 
   const addItem = useCartStore((state) => state.addItem)
-  const imageFit = product?.imageFit ?? 'cover'
-  const imageSurfaceClassName = product?.imageSurfaceClassName ?? 'bg-[#f6f1ea]'
-  const imagePositionClassName = product?.imagePositionClassName ?? 'object-center'
   const galleryImages = useMemo(() => {
     if (!product) {
       return []
@@ -81,7 +80,7 @@ export default function ProductDetailPage() {
       <div className="border-t pt-10">
         <Button asChild variant="ghost" className="h-auto rounded-none px-0 text-sm uppercase tracking-[0.22em] text-muted-foreground hover:bg-transparent hover:text-foreground">
           <Link to="/products">
-            <ArrowLeft className="h-4 w-4" />
+            <img src={backIcon} alt="" className="h-4 w-4 object-contain" aria-hidden="true" />
             Back to shop
           </Link>
         </Button>
@@ -89,15 +88,13 @@ export default function ProductDetailPage() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
         <div className="space-y-4">
-          <div className={`overflow-hidden rounded-sm ${imageSurfaceClassName}`}>
+          <div className={`overflow-hidden rounded-sm ${getProductImageSurfaceClass(product)}`}>
             <img
               src={activeImage}
               alt={product.name}
-              className={`aspect-[4/4.4] w-full ${
-                imageFit === 'contain'
-                  ? `object-contain px-6 pb-0 pt-8 ${imagePositionClassName}`
-                  : `object-cover ${imagePositionClassName}`
-              }`}
+              loading="eager"
+              decoding="async"
+              className={`aspect-square w-full ${getProductImageClass(product, 'detail')}`}
             />
           </div>
 
@@ -115,11 +112,9 @@ export default function ProductDetailPage() {
                   <img
                     src={image}
                     alt={`${product.name} view`}
-                    className={`aspect-[1/1.1] h-full w-full ${
-                      imageFit === 'contain'
-                        ? `bg-white object-contain px-2 pb-0 pt-2 ${imagePositionClassName}`
-                        : `object-cover ${imagePositionClassName}`
-                    }`}
+                    loading="lazy"
+                    decoding="async"
+                    className={`aspect-square h-full w-full ${getProductImageClass(product, 'thumbnail')}`}
                   />
                 </button>
               ))}

@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Minus, PackageCheck, Plus, ShieldCheck, Trash2, Truck } from 'lucide-react'
+import { Minus, PackageCheck, Plus, ShieldCheck, Truck } from 'lucide-react'
+import deleteIcon from '@/assets/deleteicon.png'
 import { Button } from '@/components/ui/button'
 import ProductGrid from '@/components/product/ProductGrid'
+import { getProductImageClass, getProductImageSurfaceClass } from '@/lib/productImage'
 import { productService } from '@/services/productService'
 import { useCartStore } from '@/store/cartStore'
 import { formatCurrency } from '@/utils/format'
@@ -76,18 +78,13 @@ export default function CartPage() {
         <div className="space-y-5">
           {items.map((item) => (
             <article key={item.id} className="grid gap-5 border bg-card p-5 sm:grid-cols-[140px_1fr]">
-              <div className={`overflow-hidden rounded-sm ${item.imageFit === 'contain'
-                ? item.imageSurfaceClassName ?? 'bg-[linear-gradient(180deg,#f3ece4_0%,#e8dbc9_100%)]'
-                : item.imageSurfaceClassName ?? 'bg-[#f6f1ea]'
-              }`}>
+              <div className={`overflow-hidden rounded-sm ${getProductImageSurfaceClass(item)}`}>
                 <img
                   src={item.imageUrl}
                   alt={item.productName}
-                  className={`aspect-[4/4.4] h-full w-full ${
-                    item.imageFit === 'contain'
-                      ? `object-contain px-3 pb-0 pt-4 ${item.imagePositionClassName ?? 'object-center'}`
-                      : `object-cover ${item.imagePositionClassName ?? 'object-center'}`
-                  }`}
+                  loading="lazy"
+                  decoding="async"
+                  className={`aspect-square h-full w-full ${getProductImageClass(item, 'thumbnail')}`}
                 />
               </div>
               <div className="flex flex-col justify-between gap-5">
@@ -110,7 +107,7 @@ export default function CartPage() {
                     className="rounded-none border border-foreground/12 hover:bg-black hover:text-white"
                     onClick={() => void removeItem(item.id)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <img src={deleteIcon} alt="" className="h-[1.05rem] w-[1.05rem] object-contain opacity-90" aria-hidden="true" />
                   </Button>
                 </div>
 

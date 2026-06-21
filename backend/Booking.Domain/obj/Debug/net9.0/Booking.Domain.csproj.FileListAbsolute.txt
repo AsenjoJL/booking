@@ -28,3 +28,4 @@ C:\Users\John Lester\Desktop\Booking\.tmp\api-build-exec-strategy-fix\Booking.Do
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Domain.deps.json
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Domain.dll
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Domain.pdb
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Domain\obj\Debug\net9.0\Booking.Domain.sourcelink.json

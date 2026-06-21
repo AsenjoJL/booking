@@ -37,15 +37,7 @@ public static class DatabaseSeeder
                     Description = "Breathable everyday outerwear with durable pocket construction.",
                     Price = 128m,
                     StockQuantity = 18,
-                    Category = apparel,
-                    Images =
-                    {
-                        new ProductImage
-                        {
-                            ImageUrl = "https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=900&q=80",
-                            IsPrimary = true
-                        }
-                    }
+                    Category = apparel
                 },
                 new Product
                 {
@@ -54,15 +46,7 @@ public static class DatabaseSeeder
                     Description = "Compact brewing set with reusable filter and ribbed server.",
                     Price = 74m,
                     StockQuantity = 32,
-                    Category = home,
-                    Images =
-                    {
-                        new ProductImage
-                        {
-                            ImageUrl = "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-                            IsPrimary = true
-                        }
-                    }
+                    Category = home
                 },
                 new Product
                 {
@@ -71,15 +55,7 @@ public static class DatabaseSeeder
                     Description = "Weighted base task light with warm dimming and low glare shade.",
                     Price = 96m,
                     StockQuantity = 11,
-                    Category = workspace,
-                    Images =
-                    {
-                        new ProductImage
-                        {
-                            ImageUrl = "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=80",
-                            IsPrimary = true
-                        }
-                    }
+                    Category = workspace
                 },
                 new Product
                 {
@@ -88,15 +64,7 @@ public static class DatabaseSeeder
                     Description = "Weather-resistant everyday pack with fast-access exterior pockets.",
                     Price = 142m,
                     StockQuantity = 24,
-                    Category = travel,
-                    Images =
-                    {
-                        new ProductImage
-                        {
-                            ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=80",
-                            IsPrimary = true
-                        }
-                    }
+                    Category = travel
                 });
 
             dbContext.Coupons.Add(new Coupon

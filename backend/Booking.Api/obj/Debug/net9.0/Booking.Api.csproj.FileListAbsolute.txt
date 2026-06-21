@@ -125,3 +125,5 @@ C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\bin\Debug\net9.0\Hangfi
 C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\bin\Debug\net9.0\Hangfire.NetCore.dll
 C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\bin\Debug\net9.0\Hangfire.PostgreSql.dll
 C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\bin\Debug\net9.0\Newtonsoft.Json.dll
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\obj\Debug\net9.0\Booking.Api.sourcelink.json
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Api\bin\Debug\net9.0\Booking.Api.staticwebassets.runtime.json

@@ -2,11 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { UserPlus } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/store/authStore'
+import { useCartStore } from '@/store/cartStore'
 
 const registerSchema = z
   .object({
@@ -25,7 +26,10 @@ type RegisterValues = z.infer<typeof registerSchema>
 export default function RegisterPage() {
   const registerAccount = useAuthStore((state) => state.register)
   const isLoading = useAuthStore((state) => state.isLoading)
+  const mergeGuestCartToServer = useCartStore((state) => state.mergeGuestCartToServer)
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from ?? '/'
   const {
     register,
     handleSubmit,
@@ -40,13 +44,14 @@ export default function RegisterPage() {
     const lastName = rest.join(' ') || firstName
 
     try {
-      await registerAccount({
+      const session = await registerAccount({
         firstName,
         lastName,
         email: values.email,
         password: values.password,
       })
-      navigate('/')
+      await mergeGuestCartToServer()
+      navigate(session.user.role === 'Admin' ? '/admin' : from, { replace: true })
     } catch (error) {
       setError('root', {
         message: axios.isAxiosError(error)

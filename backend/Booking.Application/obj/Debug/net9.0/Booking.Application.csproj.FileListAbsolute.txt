@@ -31,3 +31,4 @@ C:\Users\John Lester\Desktop\Booking\.tmp\api-build-exec-strategy-fix\Booking.Ap
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Application.deps.json
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Application.dll
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-cart-latency\Booking.Application.pdb
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Application\obj\Debug\net9.0\Booking.Application.sourcelink.json

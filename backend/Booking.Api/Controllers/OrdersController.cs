@@ -9,13 +9,27 @@ using Microsoft.Extensions.Logging;
 namespace Booking.Api.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("api/[controller]")]
 [EnableRateLimiting("write")]
 public sealed class OrdersController(
     IOrderService orderService,
     ILogger<OrdersController> logger) : ControllerBase
 {
+    [HttpPost("guest")]
+    [AllowAnonymous]
+    [EnableRateLimiting("checkout")]
+    public async Task<ActionResult<OrderDto>> GuestCheckout(
+        [FromBody] GuestCreateOrderDto request,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation(
+            "Guest checkout request received for email {GuestEmail}.",
+            request.GuestEmail);
+        var result = await orderService.GuestCheckoutAsync(request, cancellationToken);
+        return Created($"/api/orders/{result.Id}", result);
+    }
+
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<OrderDto>>> GetMine(CancellationToken cancellationToken)
     {
@@ -23,6 +37,7 @@ public sealed class OrdersController(
         return Ok(result);
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<OrderDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
@@ -34,6 +49,7 @@ public sealed class OrdersController(
         return Ok(result);
     }
 
+    [Authorize]
     [HttpPost]
     [EnableRateLimiting("checkout")]
     public async Task<ActionResult<OrderDto>> Checkout(

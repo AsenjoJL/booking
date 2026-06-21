@@ -15,6 +15,7 @@ public sealed class CartService(
     BookingDbContext dbContext,
     IDistributedCache cache,
     ICartCacheQueue cartCacheQueue,
+    IInventoryLedgerService inventoryLedgerService,
     ILogger<CartService> logger,
     ICacheMetricsCollector cacheMetrics) : ICartService
 {
@@ -95,10 +96,12 @@ public sealed class CartService(
                 throw new ConflictException("Product is inactive.");
             }
 
+            var (variant, inventory, _) = await inventoryLedgerService.GetOrCreateDefaultInventoryAsync(product, cancellationToken);
+
             var cartItem = await LockCartItemAsync(userId, request.ProductId, cancellationToken);
             var newQuantity = request.Quantity + (cartItem?.Quantity ?? 0);
 
-            if (newQuantity > product.StockQuantity)
+            if (newQuantity > inventoryLedgerService.GetAvailableQuantity(inventory))
             {
                 throw new ConflictException("Requested quantity exceeds available stock.");
             }
@@ -109,12 +112,14 @@ public sealed class CartService(
                 {
                     UserId = userId,
                     ProductId = request.ProductId,
+                    ProductVariantId = request.ProductVariantId ?? variant.Id,
                     Quantity = request.Quantity
                 });
             }
             else
             {
                 cartItem.Quantity = newQuantity;
+                cartItem.ProductVariantId = request.ProductVariantId ?? variant.Id;
                 cartItem.UpdatedAtUtc = DateTime.UtcNow;
                 cartItem.ConcurrencyStamp = Guid.NewGuid().ToString("N");
             }
@@ -216,12 +221,13 @@ public sealed class CartService(
             foreach (var item in normalizedItems)
             {
                 var product = lockedProducts[item.ProductId];
+                var (variant, inventory, _) = await inventoryLedgerService.GetOrCreateDefaultInventoryAsync(product, cancellationToken);
                 var currentQuantity = existingCartItems.TryGetValue(item.ProductId, out var cartItem)
                     ? cartItem.Quantity
                     : 0;
                 var newQuantity = currentQuantity + item.Quantity;
 
-                if (newQuantity > product.StockQuantity)
+                if (newQuantity > inventoryLedgerService.GetAvailableQuantity(inventory))
                 {
                     throw new ConflictException($"Requested quantity exceeds available stock for '{product.Name}'.");
                 }
@@ -232,12 +238,14 @@ public sealed class CartService(
                     {
                         UserId = userId,
                         ProductId = item.ProductId,
+                        ProductVariantId = variant.Id,
                         Quantity = item.Quantity
                     });
                     continue;
                 }
 
                 cartItem.Quantity = newQuantity;
+                cartItem.ProductVariantId = variant.Id;
                 cartItem.UpdatedAtUtc = DateTime.UtcNow;
                 cartItem.ConcurrencyStamp = Guid.NewGuid().ToString("N");
             }
@@ -283,7 +291,8 @@ public sealed class CartService(
             var product = await LockProductAsync(cartItem.ProductId, cancellationToken)
                 ?? throw new NotFoundException("Product not found.");
 
-            if (request.Quantity > product.StockQuantity)
+            var (_, inventory, _) = await inventoryLedgerService.GetOrCreateDefaultInventoryAsync(product, cancellationToken);
+            if (request.Quantity > inventoryLedgerService.GetAvailableQuantity(inventory))
             {
                 throw new ConflictException("Requested quantity exceeds available stock.");
             }
@@ -355,6 +364,8 @@ public sealed class CartService(
             .AsNoTracking()
             .Include(x => x.Product)
             .ThenInclude(x => x.Images)
+            .Include(x => x.ProductVariant)
+            .ThenInclude(x => x!.InventoryRecords)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.UpdatedAtUtc);
 
@@ -376,11 +387,11 @@ public sealed class CartService(
         if (dbContext.Database.IsNpgsql())
         {
             return await dbContext.Products
-                .FromSqlInterpolated($@"SELECT * FROM ""Products"" WHERE ""Id"" = {productId} FOR UPDATE")
+                .FromSqlInterpolated($@"SELECT * FROM ""Products"" WHERE ""Id"" = {productId} AND NOT ""IsDeleted"" FOR UPDATE")
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        return await dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId, cancellationToken);
+        return await dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId && !x.IsDeleted, cancellationToken);
     }
 
     private async Task<Domain.Entities.CartItem?> LockCartItemAsync(

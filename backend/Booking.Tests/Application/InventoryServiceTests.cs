@@ -156,10 +156,16 @@ public sealed class InventoryServiceTests : IDisposable
 
     private ProductService CreateProductService(BookingDbContext context)
     {
+        var inventoryLedger = new InventoryLedgerService(
+            context,
+            _cache,
+            NullLogger<InventoryLedgerService>.Instance);
+
         return new ProductService(
             context,
             _cache,
             new NoOpInventoryLockService(),
+            inventoryLedger,
             NullLogger<ProductService>.Instance,
             new CacheMetricsCollector());
     }

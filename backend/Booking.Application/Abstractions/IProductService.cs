@@ -13,5 +13,8 @@ public interface IProductService
     Task<ProductDetailDto> UpdateAsync(Guid productId, UpsertProductDto request, CancellationToken cancellationToken);
     Task<IReadOnlyList<ProductDetailDto>> BulkUpdateStockAsync(BulkUpdateProductStockDto request, CancellationToken cancellationToken);
     Task<IReadOnlyList<ProductDetailDto>> BulkUpdateVisibilityAsync(BulkUpdateProductVisibilityDto request, CancellationToken cancellationToken);
+    Task<InventorySnapshotDto> GetInventoryAsync(Guid productId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<InventoryMovementDto>> GetInventoryHistoryAsync(Guid productId, CancellationToken cancellationToken);
+    Task<InventorySnapshotDto> AdjustInventoryAsync(Guid productId, AdjustInventoryDto request, CancellationToken cancellationToken);
     Task DeleteAsync(Guid productId, CancellationToken cancellationToken);
 }

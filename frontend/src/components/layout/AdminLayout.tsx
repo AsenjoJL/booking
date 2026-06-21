@@ -1,30 +1,28 @@
 import {
   ClipboardList,
   FolderTree,
-  LayoutDashboard,
-  LogOut,
+  Menu,
   Package,
-  ShieldCheck,
-  Store,
 } from 'lucide-react'
-import { Link, Outlet } from 'react-router-dom'
-import brandImage from '@/assets/brand.png'
-import storeLogoImage from '@/assets/storelogo.png'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import backIcon from '@/assets/backicon.png'
+import overviewIcon from '@/assets/overview.png'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 
 const adminSections = [
-  { href: '/admin#overview', label: 'Overview', icon: LayoutDashboard },
-  { href: '/admin#inventory', label: 'Inventory', icon: Package },
-  { href: '/admin#catalog', label: 'Catalog', icon: FolderTree },
-  { href: '/admin#orders', label: 'Orders', icon: ClipboardList },
+  { href: '/admin', label: 'Overview', iconSrc: overviewIcon },
+  { href: '/admin/inventory', label: 'Inventory', icon: Package },
+  { href: '/admin/catalog', label: 'Catalog', icon: FolderTree },
+  { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
 ]
 
 export default function AdminLayout() {
+  const location = useLocation()
   const logout = useAuthStore((state) => state.logout)
-  const user = useAuthStore((state) => state.user)
   const resetLocalCart = useCartStore((state) => state.resetLocalCart)
+  const activePath = location.pathname
 
   const handleLogout = () => {
     logout()
@@ -32,66 +30,93 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f3ee] text-foreground">
-      <div className="grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="border-b border-border/70 bg-white lg:border-b-0 lg:border-r">
-          <div className="sticky top-0 flex flex-col gap-8 px-6 py-6 lg:h-screen lg:px-7">
-            <Link to="/admin" className="flex items-center gap-4">
-              <img src={storeLogoImage} alt="Store logo" className="h-14 w-14 object-contain" />
-              <img src={brandImage} alt="Brand name" className="h-8 w-auto object-contain" />
-            </Link>
-
-            <div className="border bg-[#f7f3ee] p-4">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#d36d3d]">
-                Admin workspace
-              </p>
-              <p className="mt-3 font-serif text-2xl text-foreground">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <div className="mt-3 inline-flex items-center gap-2 border border-[#d36d3d]/20 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#d36d3d]">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Admin
+    <div className="admin-shell min-h-screen bg-[#edf2f7] text-[#1f2937]">
+      <div className="grid min-h-screen lg:grid-cols-[248px_minmax(0,1fr)]">
+        <aside className="border-b border-[#233247] bg-[#1f2a3d] text-white lg:border-b-0 lg:border-r lg:border-r-[#233247]">
+          <div className="sticky top-0 flex flex-col gap-7 px-5 py-5 lg:h-screen">
+            <div className="-mx-5 -mt-5 flex items-center justify-between gap-4 bg-[#20c4c8] px-5 py-4">
+              <Link to="/admin" className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/12 text-white">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div className="flex min-w-0 flex-col">
+                  <span className="text-[1.35rem] font-semibold tracking-[-0.02em] text-white">JLA Admin</span>
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/80">Control Center</span>
+                </div>
+              </Link>
+              <div className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-white/90 lg:hidden">
+                <Menu className="h-3.5 w-3.5 text-white" />
+                Menu
               </div>
             </div>
 
-            <nav className="grid gap-2">
+            <div className="hidden lg:block">
+              <p className="mb-3 px-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-white/45">Navigation</p>
+              <nav className="grid gap-1.5">
               {adminSections.map((section) => (
-                <a
+                (() => {
+                  const SectionIcon = section.icon
+
+                  return (
+                    <Link
+                      key={section.href}
+                      to={section.href}
+                      className={`flex items-center gap-3 rounded-[10px] px-3.5 py-3 text-[0.94rem] font-medium transition ${
+                        activePath === section.href
+                          ? 'bg-white/12 text-white'
+                          : 'text-white/68 hover:bg-white/6 hover:text-white'
+                      }`}
+                    >
+                      <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-[10px] transition ${
+                          activePath === section.href ? 'bg-[#20c4c8] text-white' : 'bg-white/5 text-white/70'
+                        }`}
+                      >
+                        {section.iconSrc ? (
+                          <img src={section.iconSrc} alt="" className="h-4.5 w-4.5 object-contain" aria-hidden="true" />
+                        ) : SectionIcon ? (
+                          <SectionIcon className="h-4.5 w-4.5" />
+                        ) : null}
+                      </span>
+                      <span>{section.label}</span>
+                    </Link>
+                  )
+                })()
+              ))}
+              </nav>
+            </div>
+
+            <nav className="-mx-1 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+              {adminSections.map((section) => (
+                <Link
                   key={section.href}
-                  href={section.href}
-                  className="flex items-center gap-3 border border-transparent px-4 py-3 text-sm font-medium text-foreground/78 transition hover:border-border hover:bg-[#f7f3ee] hover:text-foreground"
+                  to={section.href}
+                  className={`shrink-0 rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                    activePath === section.href
+                      ? 'border-white/10 bg-white/12 text-white'
+                      : 'border-white/10 bg-white/5 text-white/70'
+                  }`}
                 >
-                  <section.icon className="h-4 w-4 text-[#d36d3d]" />
-                  <span>{section.label}</span>
-                </a>
+                  {section.label}
+                </Link>
               ))}
             </nav>
 
             <div className="mt-auto grid gap-3">
               <Button
-                asChild
-                variant="outline"
-                className="h-12 rounded-none justify-start gap-3 border-foreground/12 px-4 uppercase tracking-[0.18em]"
-              >
-                <Link to="/">
-                  <Store className="h-4 w-4" />
-                  View storefront
-                </Link>
-              </Button>
-              <Button
                 type="button"
                 variant="ghost"
-                className="h-12 rounded-none justify-start gap-3 border border-foreground/12 px-4 uppercase tracking-[0.18em] hover:bg-black hover:text-white"
+                className="h-11 justify-start gap-3 rounded-[10px] border border-white/10 bg-white/8 px-4 text-sm font-semibold uppercase tracking-[0.16em] text-white hover:bg-white/12"
                 onClick={handleLogout}
               >
-                <LogOut className="h-4 w-4" />
+                <img src={backIcon} alt="" className="h-[1.05rem] w-[1.05rem] object-contain opacity-85" aria-hidden="true" />
                 Sign out
               </Button>
             </div>
           </div>
         </aside>
 
-        <main className="min-w-0">
+        <main className="min-w-0 bg-[#edf2f7]">
           <Outlet />
         </main>
       </div>

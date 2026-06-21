@@ -15,6 +15,7 @@ const HomePage = lazy(() => import('@/pages/HomePage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const AboutPage = lazy(() => import('@/pages/AboutPage'))
 const OrderHistoryPage = lazy(() => import('@/pages/OrderHistoryPage'))
+const OrderConfirmationPage = lazy(() => import('@/pages/OrderConfirmationPage'))
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'))
 const ProductListPage = lazy(() => import('@/pages/ProductListPage'))
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
@@ -42,11 +43,12 @@ function App() {
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/:slug" element={<ProductDetailPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="order-confirmation" element={<OrderConfirmationPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="account" element={<AccountPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
             <Route path="orders" element={<OrderHistoryPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -54,6 +56,9 @@ function App() {
         <Route element={<ProtectedRoute adminOnly />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="inventory" element={<AdminDashboard />} />
+            <Route path="catalog" element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminDashboard />} />
           </Route>
         </Route>
       </Routes>

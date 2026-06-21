@@ -60,6 +60,37 @@ public sealed class OrderServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateStatusAsync_Confirmed_CommitsReservedInventory()
+    {
+        await using var context = new BookingDbContext(_options);
+        var fixture = await SeedFixtureAsync(context);
+        var service = CreateOrderService(context);
+
+        var order = await service.CheckoutAsync(
+            fixture.UserId,
+            new CreateOrderDto
+            {
+                ShippingAddressId = fixture.AddressId,
+                IdempotencyKey = "commit-check"
+            },
+            CancellationToken.None);
+
+        var updated = await service.UpdateStatusAsync(
+            order.Id,
+            new UpdateOrderStatusDto
+            {
+                Status = "Confirmed",
+                ConcurrencyStamp = order.ConcurrencyStamp
+            },
+            CancellationToken.None);
+
+        Assert.Equal("Confirmed", updated.Status);
+
+        var product = await context.Products.SingleAsync(x => x.Id == fixture.ProductId);
+        Assert.Equal(3, product.StockQuantity);
+    }
+
+    [Fact]
     public async Task CheckoutAsync_IsIdempotent_ForRepeatedKey()
     {
         await using var context = new BookingDbContext(_options);
@@ -88,11 +119,16 @@ public sealed class OrderServiceTests : IDisposable
     {
         await using var context = new BookingDbContext(_options);
         var fixture = await SeedFixtureAsync(context);
+        var inventoryLedger = new InventoryLedgerService(
+            context,
+            _cache,
+            NullLogger<InventoryLedgerService>.Instance);
         var service = new OrderService(
             context,
             _cache,
             new ThrowingOrderJobScheduler(),
             new NoOpInventoryLockService(),
+            inventoryLedger,
             NullLogger<OrderService>.Instance,
             new CacheMetricsCollector());
 
@@ -116,11 +152,17 @@ public sealed class OrderServiceTests : IDisposable
 
     private OrderService CreateOrderService(BookingDbContext context)
     {
+        var inventoryLedger = new InventoryLedgerService(
+            context,
+            _cache,
+            NullLogger<InventoryLedgerService>.Instance);
+
         return new OrderService(
             context,
             _cache,
             new NoOpOrderJobScheduler(),
             new NoOpInventoryLockService(),
+            inventoryLedger,
             NullLogger<OrderService>.Instance,
             new CacheMetricsCollector());
     }

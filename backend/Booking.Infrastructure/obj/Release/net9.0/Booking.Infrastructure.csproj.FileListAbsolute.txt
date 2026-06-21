@@ -1,0 +1,14 @@
+C:\Users\John Lester\Desktop\Booking\out-local-check\Booking.Infrastructure.deps.json
+C:\Users\John Lester\Desktop\Booking\out-local-check\Booking.Infrastructure.dll
+C:\Users\John Lester\Desktop\Booking\out-local-check\Booking.Infrastructure.pdb
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.AssemblyInfo.cs
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.sourcelink.json
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking..0212B810.Up2Date
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.dll
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\refint\Booking.Infrastructure.dll
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\Booking.Infrastructure.pdb
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Release\net9.0\ref\Booking.Infrastructure.dll

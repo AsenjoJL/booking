@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle, MapPin, PencilLine, Plus, Trash2 } from 'lucide-react'
+import { LoaderCircle, MapPin, PencilLine, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import deleteIcon from '@/assets/deleteicon.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { addressService } from '@/services/addressService'
@@ -269,7 +270,7 @@ export function AddressBook({
                       void deleteMutation.mutateAsync(address.id)
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <img src={deleteIcon} alt="" className="h-[1.05rem] w-[1.05rem] object-contain opacity-90" aria-hidden="true" />
                     Delete
                   </Button>
                 </div>

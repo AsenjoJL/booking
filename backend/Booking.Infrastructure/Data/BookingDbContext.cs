@@ -13,7 +13,11 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
 
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<InventoryRecord> InventoryRecords => Set<InventoryRecord>();
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<Order> Orders => Set<Order>();
@@ -47,10 +51,31 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
             entity.HasIndex(x => x.Slug).IsUnique();
             entity.HasIndex(x => new { x.IsActive, x.CreatedAtUtc });
             entity.HasIndex(x => new { x.CategoryId, x.IsActive, x.CreatedAtUtc });
+            entity.HasIndex(x => new { x.IsDeleted, x.IsActive, x.CreatedAtUtc });
+            entity.HasIndex(x => x.Brand);
             entity.Property(x => x.Name).HasMaxLength(200);
             entity.Property(x => x.Slug).HasMaxLength(220);
+            entity.Property(x => x.Brand).HasMaxLength(120);
+            entity.Property(x => x.Status).HasMaxLength(40);
             entity.Property(x => x.Price).HasPrecision(18, 2);
             entity.Property(x => x.SalePrice).HasPrecision(18, 2);
+            entity.Property(x => x.DeletedAtUtc);
+            entity.Property(x => x.ConcurrencyStamp).IsConcurrencyToken().HasMaxLength(32);
+        });
+
+        builder.Entity<ProductVariant>(entity =>
+        {
+            entity.HasIndex(x => x.Sku).IsUnique();
+            entity.HasIndex(x => new { x.ProductId, x.IsDefault });
+            entity.Property(x => x.Sku).HasMaxLength(100);
+            entity.Property(x => x.Color).HasMaxLength(80);
+            entity.Property(x => x.Size).HasMaxLength(50);
+            entity.Property(x => x.Weight).HasPrecision(12, 3);
+            entity.Property(x => x.Model).HasMaxLength(100);
+            entity.Property(x => x.PackageType).HasMaxLength(100);
+            entity.Property(x => x.Price).HasPrecision(18, 2);
+            entity.Property(x => x.SalePrice).HasPrecision(18, 2);
+            entity.Property(x => x.Status).HasMaxLength(40);
             entity.Property(x => x.ConcurrencyStamp).IsConcurrencyToken().HasMaxLength(32);
         });
 
@@ -58,6 +83,28 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
         {
             entity.HasIndex(x => new { x.ProductId, x.SortOrder });
             entity.Property(x => x.ImageUrl).HasMaxLength(2048);
+        });
+
+        builder.Entity<Warehouse>(entity =>
+        {
+            entity.HasIndex(x => x.Code).IsUnique();
+            entity.Property(x => x.Name).HasMaxLength(150);
+            entity.Property(x => x.Code).HasMaxLength(50);
+        });
+
+        builder.Entity<InventoryRecord>(entity =>
+        {
+            entity.HasIndex(x => new { x.WarehouseId, x.ProductVariantId }).IsUnique();
+            entity.HasIndex(x => new { x.ProductVariantId, x.UpdatedAtUtc });
+            entity.Property(x => x.ConcurrencyStamp).IsConcurrencyToken().HasMaxLength(32);
+        });
+
+        builder.Entity<InventoryMovement>(entity =>
+        {
+            entity.HasIndex(x => new { x.ProductVariantId, x.CreatedAtUtc });
+            entity.HasIndex(x => new { x.ReferenceType, x.ReferenceId });
+            entity.Property(x => x.MovementType).HasMaxLength(40);
+            entity.Property(x => x.ReferenceType).HasMaxLength(60);
         });
 
         builder.Entity<CartItem>(entity =>
@@ -103,10 +150,32 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
         builder.Entity<Order>(entity =>
         {
             entity.HasIndex(x => new { x.UserId, x.IdempotencyKey }).IsUnique();
+            entity.HasIndex(x => new { x.GuestEmail, x.IdempotencyKey });
             entity.HasIndex(x => new { x.UserId, x.CreatedAtUtc });
             entity.HasIndex(x => x.CreatedAtUtc);
             entity.HasIndex(x => x.ExpiresAtUtc);
             entity.HasIndex(x => new { x.Status, x.PaymentStatus });
+            entity.Property(x => x.GuestEmail).HasMaxLength(256);
+            entity.Property(x => x.GuestRecipientName).HasMaxLength(200);
+            entity.Property(x => x.GuestPhoneNumber).HasMaxLength(30);
+            entity.Property(x => x.ShippingLabel).HasMaxLength(80);
+            entity.Property(x => x.ShippingRecipientName).HasMaxLength(200);
+            entity.Property(x => x.ShippingLine1).HasMaxLength(180);
+            entity.Property(x => x.ShippingLine2).HasMaxLength(180);
+            entity.Property(x => x.ShippingCity).HasMaxLength(100);
+            entity.Property(x => x.ShippingStateOrProvince).HasMaxLength(100);
+            entity.Property(x => x.ShippingPostalCode).HasMaxLength(30);
+            entity.Property(x => x.ShippingCountry).HasMaxLength(80);
+            entity.Property(x => x.ShippingPhoneNumber).HasMaxLength(30);
+            entity.Property(x => x.BillingLabel).HasMaxLength(80);
+            entity.Property(x => x.BillingRecipientName).HasMaxLength(200);
+            entity.Property(x => x.BillingLine1).HasMaxLength(180);
+            entity.Property(x => x.BillingLine2).HasMaxLength(180);
+            entity.Property(x => x.BillingCity).HasMaxLength(100);
+            entity.Property(x => x.BillingStateOrProvince).HasMaxLength(100);
+            entity.Property(x => x.BillingPostalCode).HasMaxLength(30);
+            entity.Property(x => x.BillingCountry).HasMaxLength(80);
+            entity.Property(x => x.BillingPhoneNumber).HasMaxLength(30);
             entity.Property(x => x.Subtotal).HasPrecision(18, 2);
             entity.Property(x => x.Discount).HasPrecision(18, 2);
             entity.Property(x => x.ShippingFee).HasPrecision(18, 2);
@@ -127,6 +196,7 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
 
         builder.Entity<OrderItem>(entity =>
         {
+            entity.Property(x => x.Sku).HasMaxLength(100);
             entity.Property(x => x.ProductName).HasMaxLength(200);
             entity.Property(x => x.UnitPrice).HasPrecision(18, 2);
             entity.Property(x => x.LineTotal).HasPrecision(18, 2);

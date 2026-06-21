@@ -251,6 +251,7 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 });
 app.UseCors("Frontend");
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();

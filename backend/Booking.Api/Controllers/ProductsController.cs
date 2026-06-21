@@ -9,7 +9,7 @@ namespace Booking.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class ProductsController(IProductService productService) : ControllerBase
+public sealed class ProductsController(IProductService productService, IWebHostEnvironment environment) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -72,6 +72,65 @@ public sealed class ProductsController(IProductService productService) : Control
         return Ok(result);
     }
 
+    [HttpPost("upload-image")]
+    [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("admin")]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<ActionResult<object>> UploadImage(
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file.Length <= 0)
+        {
+            return BadRequest(new { error = "Choose an image file to upload." });
+        }
+
+        if (file.Length > 10 * 1024 * 1024)
+        {
+            return BadRequest(new { error = "Image must be 10 MB or smaller." });
+        }
+
+        var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif"
+        };
+
+        if (!allowedContentTypes.Contains(file.ContentType))
+        {
+            return BadRequest(new { error = "Only JPG, PNG, WEBP, and GIF images are allowed." });
+        }
+
+        var uploadsRoot = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "products");
+        Directory.CreateDirectory(uploadsRoot);
+
+        var extension = Path.GetExtension(file.FileName);
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            extension = file.ContentType switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/png" => ".png",
+                "image/webp" => ".webp",
+                "image/gif" => ".gif",
+                _ => ".bin"
+            };
+        }
+
+        var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+        var filePath = Path.Combine(uploadsRoot, fileName);
+
+        await using (var stream = System.IO.File.Create(filePath))
+        {
+            await file.CopyToAsync(stream, cancellationToken);
+        }
+
+        var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/products/{fileName}";
+        return Ok(new { imageUrl });
+    }
+
     [HttpPost("bulk-stock")]
     [Authorize(Roles = "Admin")]
     [EnableRateLimiting("admin")]
@@ -91,6 +150,40 @@ public sealed class ProductsController(IProductService productService) : Control
         CancellationToken cancellationToken)
     {
         var result = await productService.BulkUpdateVisibilityAsync(request, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/inventory")]
+    [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult<InventorySnapshotDto>> GetInventory(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await productService.GetInventoryAsync(id, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/inventory/history")]
+    [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult<IReadOnlyList<InventoryMovementDto>>> GetInventoryHistory(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await productService.GetInventoryHistoryAsync(id, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/inventory/adjust")]
+    [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult<InventorySnapshotDto>> AdjustInventory(
+        Guid id,
+        [FromBody] AdjustInventoryDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await productService.AdjustInventoryAsync(id, request, cancellationToken);
         return Ok(result);
     }
 

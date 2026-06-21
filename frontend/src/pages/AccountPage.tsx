@@ -10,6 +10,7 @@ import { AddressBook } from '@/components/checkout/AddressBook'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getProductImageClass, getProductImageSurfaceClass } from '@/lib/productImage'
 import { addressService } from '@/services/addressService'
 import { productService } from '@/services/productService'
 import { useAuthStore } from '@/store/authStore'
@@ -226,15 +227,13 @@ export default function AccountPage() {
           {accountProducts.map((product) => (
             <article key={product.id} className="overflow-hidden border bg-card shadow-soft">
               <Link to={`/products/${product.slug}`} className="block">
-                <div className={`aspect-[4/4.2] overflow-hidden ${product.imageSurfaceClassName ?? 'bg-[#f6f1ea]'}`}>
+                <div className={`aspect-square overflow-hidden ${getProductImageSurfaceClass(product)}`}>
                   <img
                     src={product.image}
                     alt={product.name}
-                    className={`h-full w-full transition-transform duration-500 hover:scale-105 ${
-                      product.imageFit === 'contain'
-                        ? `object-contain px-4 pb-0 pt-5 ${product.imagePositionClassName ?? 'object-center'}`
-                        : `object-cover ${product.imagePositionClassName ?? 'object-center'}`
-                    }`}
+                    loading="lazy"
+                    decoding="async"
+                    className={`h-full w-full transition-transform duration-500 hover:scale-105 ${getProductImageClass(product, 'compact')}`}
                   />
                 </div>
               </Link>

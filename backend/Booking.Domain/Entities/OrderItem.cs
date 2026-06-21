@@ -7,6 +7,9 @@ public sealed class OrderItem
     public Order Order { get; set; } = null!;
     public Guid ProductId { get; set; }
     public Product Product { get; set; } = null!;
+    public Guid? ProductVariantId { get; set; }
+    public ProductVariant? ProductVariant { get; set; }
+    public string? Sku { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }

@@ -35,9 +35,9 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      await login(values.email, values.password)
+      const session = await login(values.email, values.password)
       await mergeGuestCartToServer()
-      navigate(from, { replace: true })
+      navigate(session.user.role === 'Admin' ? '/admin' : from, { replace: true })
     } catch (error) {
       setError('root', {
         message: axios.isAxiosError(error)

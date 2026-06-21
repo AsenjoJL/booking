@@ -30,3 +30,4 @@ C:\Users\John Lester\Desktop\Booking\.tmp\api-build-refresh-fix\Booking.Infrastr
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-exec-strategy-fix\Booking.Infrastructure.deps.json
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-exec-strategy-fix\Booking.Infrastructure.dll
 C:\Users\John Lester\Desktop\Booking\.tmp\api-build-exec-strategy-fix\Booking.Infrastructure.pdb
+C:\Users\John Lester\Desktop\Booking\backend\Booking.Infrastructure\obj\Debug\net9.0\Booking.Infrastructure.sourcelink.json

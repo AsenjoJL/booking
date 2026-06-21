@@ -6,8 +6,13 @@ public sealed class OrderDto
     public required string Status { get; init; }
     public required string PaymentMethod { get; init; }
     public required string PaymentStatus { get; init; }
-    public required Guid ShippingAddressId { get; init; }
+    public Guid? UserId { get; init; }
+    public Guid? ShippingAddressId { get; init; }
     public Guid? BillingAddressId { get; init; }
+    public string? GuestEmail { get; init; }
+    public string? GuestRecipientName { get; init; }
+    public GuestOrderAddressDto? ShippingAddressSnapshot { get; init; }
+    public GuestOrderAddressDto? BillingAddressSnapshot { get; init; }
     public required decimal Subtotal { get; init; }
     public required decimal Discount { get; init; }
     public required decimal ShippingFee { get; init; }

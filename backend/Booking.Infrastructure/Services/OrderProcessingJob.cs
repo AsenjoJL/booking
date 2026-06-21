@@ -43,15 +43,19 @@ public sealed class OrderProcessingJob(
             order.Status);
     }
 
-    private async Task InvalidateOrderCachesAsync(Guid userId, Guid orderId)
+    private async Task InvalidateOrderCachesAsync(Guid? userId, Guid orderId)
     {
-        var cacheKeys = new[]
+        var cacheKeys = new List<string>
         {
-            $"orders:user:{userId:N}",
             "orders:admin:all",
-            $"orders:user:{userId:N}:item:{orderId:N}",
             $"orders:admin:item:{orderId:N}"
         };
+
+        if (userId.HasValue)
+        {
+            cacheKeys.Add($"orders:user:{userId.Value:N}");
+            cacheKeys.Add($"orders:user:{userId.Value:N}:item:{orderId:N}");
+        }
 
         foreach (var key in cacheKeys)
         {

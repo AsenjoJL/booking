@@ -72,6 +72,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton<ICacheMetricsCollector, CacheMetricsCollector>();
+        services.AddScoped<IInventoryLedgerService, InventoryLedgerService>();
         services.AddScoped<JwtTokenFactory>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAddressService, AddressService>();

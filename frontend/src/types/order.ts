@@ -6,6 +6,18 @@ export type OrderItem = {
   lineTotal: number
 }
 
+export type OrderAddressSnapshot = {
+  label: string
+  recipientName: string
+  line1: string
+  line2?: string | null
+  city: string
+  stateOrProvince: string
+  postalCode: string
+  country: string
+  phoneNumber: string
+}
+
 export type OrderStatus =
   | 'Pending'
   | 'PendingPayment'
@@ -27,8 +39,13 @@ export type Order = {
   status: OrderStatus
   paymentMethod: PaymentMethod
   paymentStatus: PaymentStatus
-  shippingAddressId: string
+  userId?: string | null
+  shippingAddressId?: string | null
   billingAddressId?: string | null
+  guestEmail?: string | null
+  guestRecipientName?: string | null
+  shippingAddressSnapshot?: OrderAddressSnapshot | null
+  billingAddressSnapshot?: OrderAddressSnapshot | null
   subtotal: number
   discount: number
   shippingFee: number

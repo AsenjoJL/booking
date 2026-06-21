@@ -1,1 +1,537 @@
-{"Version":1,"Hash":"w2V42lMkbpxgfV17vuHZO6W3nxJZZLKIFnTkVzZOc10=","Source":"Booking.Api","BasePath":"_content/Booking.Api","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "VvXUcoTVux6Vja/uBxYarf3gKpX2h9YZIw0wXUkyMR8=",
+  "Source": "Booking.Api",
+  "BasePath": "_content/Booking.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "Booking.Api\\wwwroot",
+      "Source": "Booking.Api",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/3958fc4fbffd4378b02f91648fbec611#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "l7kq4iz8za",
+      "Integrity": "0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png"
+    },
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/6dcd47b5331d4131a92b1dc2b2a7cf6e#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "l7kq4iz8za",
+      "Integrity": "0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png"
+    },
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/70d138f238654c30a6a93ff3addc5a93#[.{fingerprint}]?.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "07b3b9ce1l",
+      "Integrity": "lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp"
+    },
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/869ae1a33a0047d6be1e0086d2468710#[.{fingerprint}]?.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "07b3b9ce1l",
+      "Integrity": "lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp"
+    },
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/bc39192ba54845c6b983044755f5d0ee#[.{fingerprint}]?.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "07b3b9ce1l",
+      "Integrity": "lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "uploads/products/3958fc4fbffd4378b02f91648fbec611.l7kq4iz8za.png",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "11374"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Jun 2026 02:42:12 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "l7kq4iz8za"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/3958fc4fbffd4378b02f91648fbec611.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/3958fc4fbffd4378b02f91648fbec611.png",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "11374"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Jun 2026 02:42:12 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/6dcd47b5331d4131a92b1dc2b2a7cf6e.l7kq4iz8za.png",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "11374"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Jun 2026 04:33:38 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "l7kq4iz8za"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/6dcd47b5331d4131a92b1dc2b2a7cf6e.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/6dcd47b5331d4131a92b1dc2b2a7cf6e.png",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "11374"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 20 Jun 2026 04:33:38 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-0SR16mfFW85GTeU+SXk/Do0Sbt36UJHyFqSJ339Plbk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/70d138f238654c30a6a93ff3addc5a93.07b3b9ce1l.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:47:16 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "07b3b9ce1l"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/70d138f238654c30a6a93ff3addc5a93.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/70d138f238654c30a6a93ff3addc5a93.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:47:16 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/869ae1a33a0047d6be1e0086d2468710.07b3b9ce1l.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:40:53 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "07b3b9ce1l"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/869ae1a33a0047d6be1e0086d2468710.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/869ae1a33a0047d6be1e0086d2468710.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:40:53 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/bc39192ba54845c6b983044755f5d0ee.07b3b9ce1l.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:41:25 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "07b3b9ce1l"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/bc39192ba54845c6b983044755f5d0ee.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/bc39192ba54845c6b983044755f5d0ee.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "94026"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 21 Jun 2026 10:41:25 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-lLVSJS2EOE/kh5+e1uDYU/lAvUF4WEW9NKcO0vbB+DA="
+        }
+      ]
+    }
+  ]
+}

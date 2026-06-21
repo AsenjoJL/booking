@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
+      "PackagePath": "staticwebassets\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png"
+    },
+    {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png",
+      "PackagePath": "staticwebassets\\uploads\\products\\6dcd47b5331d4131a92b1dc2b2a7cf6e.png"
+    },
+    {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp",
+      "PackagePath": "staticwebassets\\uploads\\products\\70d138f238654c30a6a93ff3addc5a93.webp"
+    },
+    {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp",
+      "PackagePath": "staticwebassets\\uploads\\products\\869ae1a33a0047d6be1e0086d2468710.webp"
+    },
+    {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp",
+      "PackagePath": "staticwebassets\\uploads\\products\\bc39192ba54845c6b983044755f5d0ee.webp"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.Booking.Api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.Booking.Api.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.build.Booking.Api.props",
+      "PackagePath": "build\\Booking.Api.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.buildMultiTargeting.Booking.Api.props",
+      "PackagePath": "buildMultiTargeting\\Booking.Api.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.buildTransitive.Booking.Api.props",
+      "PackagePath": "buildTransitive\\Booking.Api.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
