@@ -53,7 +53,7 @@ export default function LoginPage() {
         <LockKeyhole className="h-7 w-7 text-primary" />
         <h1 className="mt-5 text-3xl font-semibold">Sign in</h1>
         <p className="mt-2 text-muted-foreground">
-          Demo credentials are seeded on the backend: `customer@booking.local` / `Customer123!`.
+          Welcome back. Enter your credentials to access your account.
         </p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="rounded-lg border bg-card p-6">
