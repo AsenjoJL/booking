@@ -259,7 +259,10 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
     DashboardTitle = "Booking Jobs"
 });
 app.UseCors("Frontend");
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseRateLimiter();
