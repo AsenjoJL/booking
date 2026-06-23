@@ -448,7 +448,7 @@ public sealed class ProductService(
                 await inventoryLedgerService.AdjustInventoryAsync(
                     product.Id,
                     item.StockQuantity,
-                    snapshot.PiecesReserved,
+                    snapshot.QtyReserved,
                     "Bulk stock update",
                     cancellationToken);
             }
@@ -528,8 +528,8 @@ public sealed class ProductService(
     {
         var snapshot = await inventoryLedgerService.AdjustInventoryAsync(
             productId,
-            request.PiecesOnHand,
-            request.PiecesReserved,
+            request.QtyOnHand,
+            request.QtyReserved,
             request.Note,
             cancellationToken);
         await BumpCatalogVersionAsync(cancellationToken);

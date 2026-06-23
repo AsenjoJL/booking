@@ -7,9 +7,9 @@ public sealed class InventoryMovementDto
     public required string Sku { get; init; }
     public required string WarehouseCode { get; init; }
     public required string MovementType { get; init; }
-    public required int PiecesDelta { get; init; }
-    public required int PiecesOnHandAfter { get; init; }
-    public required int PiecesReservedAfter { get; init; }
+    public required int QtyDelta { get; init; }
+    public required int QtyOnHandAfter { get; init; }
+    public required int QtyReservedAfter { get; init; }
     public string? ReferenceType { get; init; }
     public Guid? ReferenceId { get; init; }
     public string? Note { get; init; }

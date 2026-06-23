@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 using StackExchange.Redis;
 
 namespace Booking.Infrastructure.Extensions;
@@ -20,7 +22,11 @@ public static class ServiceCollectionExtensions
             ?? "Host=localhost;Port=5432;Database=booking;Username=postgres;Password=postgres";
 
         services.AddDbContext<BookingDbContext>(options =>
-            options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure()));
+            options.UseNpgsql(connectionString, npgsql => 
+            {
+                npgsql.EnableRetryOnFailure();
+                npgsql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            }));
 
         services.AddIdentityCore<User>(options =>
             {
@@ -35,7 +41,8 @@ public static class ServiceCollectionExtensions
                 options.Lockout.AllowedForNewUsers = true;
             })
             .AddRoles<IdentityRole<Guid>>()
-            .AddEntityFrameworkStores<BookingDbContext>();
+            .AddEntityFrameworkStores<BookingDbContext>()
+            .AddDefaultTokenProviders();
 
         var jwtSection = configuration.GetSection(JwtOptions.SectionName);
         services.Configure<JwtOptions>(options =>
@@ -83,6 +90,22 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICartCacheQueue>(serviceProvider => serviceProvider.GetRequiredService<CartCacheQueue>());
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddTransient<IEmailService, EmailService>();
+
+        services.Configure<SmtpOptions>(options =>
+            configuration.GetSection(SmtpOptions.SectionName).Bind(options));
+
+        services.AddHttpClient<ISmsService, SmsService>()
+            .AddTransientHttpErrorPolicy(policyBuilder =>
+                policyBuilder.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
+
+        services.Configure<SmsOptions>(options =>
+            configuration.GetSection(SmsOptions.SectionName).Bind(options));
+
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
+        });
 
         return services;
     }

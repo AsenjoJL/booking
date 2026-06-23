@@ -19,6 +19,7 @@ const OrderConfirmationPage = lazy(() => import('@/pages/OrderConfirmationPage')
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'))
 const ProductListPage = lazy(() => import('@/pages/ProductListPage'))
 const RegisterPage = lazy(() => import('@/pages/RegisterPage'))
+const VerifyEmailPage = lazy(() => import('@/pages/VerifyEmailPage'))
 
 function RouteFallback() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="order-confirmation" element={<OrderConfirmationPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="account" element={<AccountPage />} />
             <Route path="orders" element={<OrderHistoryPage />} />

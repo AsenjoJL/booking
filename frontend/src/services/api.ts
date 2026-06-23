@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
 
-export const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+// Use the environment variable if defined, otherwise use the proxy path in development
+export const apiBaseUrl = import.meta.env.VITE_API_URL || '/api'
 
 export const rawApi = axios.create({
   baseURL: apiBaseUrl,
@@ -18,6 +19,12 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
+
+// Order Notifications
+export const getOrderNotifications = async (orderId: string) => {
+  const response = await api.get(`/orders/${orderId}/notifications`)
+  return response.data
+}
 
 let refreshPromise: Promise<string | null> | null = null
 

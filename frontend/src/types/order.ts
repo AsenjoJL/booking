@@ -25,6 +25,7 @@ export type OrderStatus =
   | 'Processing'
   | 'Paid'
   | 'Shipped'
+  | 'OutForDelivery'
   | 'Delivered'
   | 'Cancelled'
   | 'Expired'
@@ -56,4 +57,14 @@ export type Order = {
   expiresAtUtc?: string | null
   concurrencyStamp: string
   items: OrderItem[]
+}
+
+export interface OrderNotificationLog {
+  id: string
+  orderId: string
+  phoneNumber: string
+  message: string
+  status: string
+  sentAtUtc: string
+  errorMessage?: string
 }

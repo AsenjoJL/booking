@@ -25,6 +25,7 @@ import { AdminConfirmDialog, AdminFeedbackDialog } from '@/components/admin/Admi
 import { InventorySection } from '@/components/admin/InventorySection'
 import AdminRestockModal from '@/components/admin/AdminRestockModal'
 import { AdminOrdersSection, AdminPageIntro } from '@/components/admin/AdminSections'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -42,6 +43,7 @@ const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | '
   Processing: 'secondary',
   Paid: 'default',
   Shipped: 'secondary',
+  OutForDelivery: 'secondary',
   Delivered: 'outline',
   Cancelled: 'outline',
   Expired: 'outline',
@@ -49,12 +51,13 @@ const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | '
 }
 
 const statusOptionsByCurrent: Record<OrderStatus, OrderStatus[]> = {
-  Pending: ['Pending', 'Confirmed', 'Cancelled', 'Expired'],
-  PendingPayment: ['PendingPayment', 'Confirmed', 'Cancelled', 'Expired'],
-  Confirmed: ['Confirmed', 'Processing', 'Cancelled', 'Expired'],
+  Pending: ['Pending', 'Confirmed', 'Shipped', 'Cancelled', 'Expired'],
+  PendingPayment: ['PendingPayment', 'Confirmed', 'Shipped', 'Cancelled', 'Expired'],
+  Confirmed: ['Confirmed', 'Processing', 'Shipped', 'Cancelled', 'Expired'],
   Processing: ['Processing', 'Shipped', 'Cancelled'],
-  Paid: ['Paid', 'Processing', 'Cancelled'],
-  Shipped: ['Shipped', 'Delivered', 'Cancelled'],
+  Paid: ['Paid', 'Processing', 'Shipped', 'Cancelled'],
+  Shipped: ['Shipped', 'OutForDelivery', 'Delivered', 'Cancelled'],
+  OutForDelivery: ['OutForDelivery', 'Delivered', 'Cancelled'],
   Delivered: ['Delivered', 'Refunded'],
   Cancelled: ['Cancelled'],
   Expired: ['Expired'],
@@ -109,11 +112,12 @@ type UploadedProductImage = {
   isExisting?: boolean
 }
 
-const restockBrandOptions = ['Nike', 'Adidas', 'Zara', 'H&M', 'Uniqlo', "Levi's", 'Gucci', 'Puma', 'Gap', 'Ralph Lauren']
-const restockColorOptions = ['Black', 'White', 'Navy Blue', 'Red', 'Grey', 'Beige', 'Olive', 'Pink', 'Brown', 'Cream']
-const productBrandOptions = ['Nike', 'Adidas', 'Zara', 'H&M', 'Uniqlo', "Levi's", 'Gucci', 'Puma', 'Gap', 'Ralph Lauren']
-const productColorOptions = ['Black', 'White', 'Navy Blue', 'Red', 'Grey', 'Beige', 'Olive', 'Pink', 'Brown', 'Cream']
+const restockBrandOptions = ['JLA Everyday', 'Zara', 'H&M', 'Uniqlo', 'Mango', 'COS', '& Other Stories', 'Massimo Dutti', 'Reserved', 'Pull&Bear']
+const restockColorOptions = ['Black', 'White', 'Navy', 'Cream', 'Beige', 'Olive', 'Burgundy', 'Charcoal', 'Camel', 'Sage']
+const productBrandOptions = ['JLA Everyday', 'Zara', 'H&M', 'Uniqlo', 'Mango', 'COS', '& Other Stories', 'Massimo Dutti', 'Reserved', 'Pull&Bear']
+const productColorOptions = ['Black', 'White', 'Navy', 'Cream', 'Beige', 'Olive', 'Burgundy', 'Charcoal', 'Camel', 'Sage', 'Ivory', 'Brown', 'Pink', 'Grey']
 const productSizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
 
 type RestockFormState = {
   productName: string
@@ -375,6 +379,61 @@ function OrderStatusEditor({ order }: { order: Order }) {
   )
 }
 
+function AdminSmsHistoryModal({
+  orderId,
+  open,
+  onClose,
+}: {
+  orderId: string | null
+  open: boolean
+  onClose: () => void
+}) {
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: ['sms-logs', orderId],
+    queryFn: () => (orderId ? orderService.getNotifications(orderId) : Promise.resolve([])),
+    enabled: Boolean(orderId && open),
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl border-[#dbe4f0] bg-white p-0 shadow-[0_22px_60px_rgba(15,23,42,0.16)]">
+        <DialogHeader className="border-b border-[#eef2f7] px-6 py-5">
+          <DialogTitle className="text-xl font-semibold text-[#0f172a]">SMS Notification Logs</DialogTitle>
+          <DialogDescription className="text-[0.95rem] text-muted-foreground">
+            History of all automated SMS messages sent for this order.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="px-6 py-6 max-h-[60vh] overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <LoaderCircle className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : logs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No SMS logs found for this order.</p>
+          ) : (
+            <div className="space-y-4">
+              {logs.map((log: any) => (
+                <div key={log.id} className="rounded-xl border border-[#e5ebf3] bg-[#fbfdff] p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold text-[#334155]">{log.phoneNumber}</p>
+                    <Badge variant={log.status === 'Success' ? 'default' : 'outline'}>{log.status}</Badge>
+                  </div>
+                  <p className="text-sm text-[#475569] mb-2">{log.message}</p>
+                  <div className="flex items-center justify-between text-xs text-[#94a3b8]">
+                    <span>{new Date(log.sentAtUtc).toLocaleString()}</span>
+                    {log.errorMessage ? <span className="text-destructive font-medium truncate max-w-[50%]">{log.errorMessage}</span> : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function AdminDashboard() {
   const location = useLocation()
   const queryClient = useQueryClient()
@@ -392,6 +451,7 @@ export default function AdminDashboard() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [isRestockModalOpen, setIsRestockModalOpen] = useState(false)
+  const [selectedOrderIdForSms, setSelectedOrderIdForSms] = useState<string | null>(null)
   const [productSubmissionError, setProductSubmissionError] = useState<string | null>(null)
   const [productSuccessMessage, setProductSuccessMessage] = useState<string | null>(null)
   const [adminErrorMessage, setAdminErrorMessage] = useState<string | null>(null)
@@ -401,7 +461,7 @@ export default function AdminDashboard() {
   const [isProductImageDragActive, setIsProductImageDragActive] = useState(false)
   const [restockForm, setRestockForm] = useState<RestockFormState | null>(null)
   const [restockFormError, setRestockFormError] = useState<string | null>(null)
-  const [restockPiecesToAdd, setRestockPiecesToAdd] = useState('0')
+  const [restockQtyToAdd, setRestockQtyToAdd] = useState('0')
   const [productUnitCost, setProductUnitCost] = useState('0')
   const [productProfitMargin, setProductProfitMargin] = useState('0')
   const [search, setSearch] = useState('')
@@ -530,9 +590,9 @@ export default function AdminDashboard() {
         color: selectedInventorySnapshot.color ?? selectedInventoryProduct?.color ?? '',
         size: selectedInventorySnapshot.size ?? selectedInventoryProduct?.size ?? '',
         warehouseCode: selectedInventorySnapshot.warehouseCode,
-        piecesOnHand: selectedInventorySnapshot.piecesOnHand,
-        piecesReserved: selectedInventorySnapshot.piecesReserved,
-        piecesAvailable: selectedInventorySnapshot.piecesAvailable,
+        qtyOnHand: selectedInventorySnapshot.qtyOnHand,
+        qtyReserved: selectedInventorySnapshot.qtyReserved,
+        qtyAvailable: selectedInventorySnapshot.qtyAvailable,
         lowStockThreshold: selectedInventorySnapshot.lowStockThreshold,
       }
     }
@@ -548,9 +608,9 @@ export default function AdminDashboard() {
       color: selectedInventoryProduct.color ?? '',
       size: selectedInventoryProduct.size ?? '',
       warehouseCode: 'MAIN',
-      piecesOnHand: selectedInventoryProduct.quantityOnHand ?? selectedInventoryProduct.stock,
-      piecesReserved: selectedInventoryProduct.quantityReserved ?? 0,
-      piecesAvailable:
+      qtyOnHand: selectedInventoryProduct.quantityOnHand ?? selectedInventoryProduct.stock,
+      qtyReserved: selectedInventoryProduct.quantityReserved ?? 0,
+      qtyAvailable:
         selectedInventoryProduct.quantityAvailable ??
         (selectedInventoryProduct.quantityOnHand ?? selectedInventoryProduct.stock) - (selectedInventoryProduct.quantityReserved ?? 0),
       lowStockThreshold: selectedInventoryProduct.lowStockThreshold ?? 5,
@@ -714,7 +774,7 @@ export default function AdminDashboard() {
       }
     )
 
-    setRestockPiecesToAdd((current) => (current === '0' ? current : '0'))
+    setRestockQtyToAdd((current) => (current === '0' ? current : '0'))
     setRestockFormError((current) => (current ? null : current))
   }, [
     isRestockModalOpen,
@@ -902,15 +962,15 @@ export default function AdminDashboard() {
   const adjustInventoryMutation = useMutation({
     mutationFn: ({
       productId,
-      piecesOnHand,
-      piecesReserved,
+      qtyOnHand,
+      qtyReserved,
       note,
     }: {
       productId: string
-      piecesOnHand: number
-      piecesReserved: number
+      qtyOnHand: number
+      qtyReserved: number
       note?: string
-    }) => productService.adjustInventory(productId, piecesOnHand, piecesReserved, note),
+    }) => productService.adjustInventory(productId, qtyOnHand, qtyReserved, note),
     onSuccess: async (_, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
@@ -1614,7 +1674,7 @@ export default function AdminDashboard() {
     setIsRestockModalOpen(false)
     setRestockForm(null)
     setRestockFormError(null)
-    setRestockPiecesToAdd('0')
+    setRestockQtyToAdd('0')
   }
 
   const syncPriceFromMargin = (unitCostValue: string, marginValue: string) => {
@@ -1658,26 +1718,29 @@ export default function AdminDashboard() {
       return
     }
 
-    const piecesToAdd = Number(restockPiecesToAdd)
-    const piecesOnHand = selectedInventorySnapshot.piecesOnHand + Math.max(0, piecesToAdd || 0)
-    const piecesReserved = selectedInventorySnapshot.piecesReserved
-    const lowStockThreshold = Number(restockForm.lowStockThreshold)
+    const cleanQty = restockQtyToAdd.toString().replace(/,/g, '')
+    const cleanThreshold = restockForm.lowStockThreshold.toString().replace(/,/g, '')
+
+    const qtyToAdd = Number(cleanQty)
+    const qtyOnHand = selectedInventorySnapshot.qtyOnHand + Math.max(0, qtyToAdd || 0)
+    const qtyReserved = selectedInventorySnapshot.qtyReserved
+    const lowStockThreshold = Number(cleanThreshold)
 
     if (
-      Number.isNaN(piecesToAdd) ||
-      Number.isNaN(piecesOnHand) ||
-      Number.isNaN(piecesReserved) ||
+      Number.isNaN(qtyToAdd) ||
+      Number.isNaN(qtyOnHand) ||
+      Number.isNaN(qtyReserved) ||
       Number.isNaN(lowStockThreshold) ||
-      piecesToAdd < 0 ||
-      piecesOnHand < 0 ||
-      piecesReserved < 0 ||
+      qtyToAdd < 0 ||
+      qtyOnHand < 0 ||
+      qtyReserved < 0 ||
       lowStockThreshold < 0
     ) {
-      setRestockFormError('Pieces to add and reorder level must be 0 or more.')
+      setRestockFormError('Quantity to add and reorder level must be valid numbers (0 or more).')
       return
     }
 
-    if (piecesReserved > piecesOnHand) {
+    if (qtyReserved > qtyOnHand) {
       setRestockFormError('Reserved stock cannot be greater than current stock.')
       return
     }
@@ -1687,8 +1750,8 @@ export default function AdminDashboard() {
     try {
       await adjustInventoryMutation.mutateAsync({
         productId: resolvedInventoryProductId,
-        piecesOnHand,
-        piecesReserved,
+        qtyOnHand,
+        qtyReserved,
         note: restockForm.note.trim() || undefined,
       })
       await Promise.all([
@@ -1704,7 +1767,7 @@ export default function AdminDashboard() {
       const message =
         error instanceof Error
           ? error.message
-          : 'Unable to add restock right now. Please make sure the backend was restarted after the inventory pieces update.'
+          : 'Unable to add restock right now. Please make sure the backend was restarted after the inventory quantity update.'
 
       setRestockFormError(message)
       setAdminErrorMessage(message)
@@ -1721,7 +1784,7 @@ export default function AdminDashboard() {
 
     setRestockForm(null)
     setRestockFormError(null)
-    setRestockPiecesToAdd('0')
+    setRestockQtyToAdd('0')
 
     if (productId) {
       setSelectedInventoryProductId(productId)
@@ -2440,8 +2503,15 @@ export default function AdminDashboard() {
           statusVariant={statusVariant}
           formatCurrency={formatCurrency}
           renderStatusEditor={(order) => <OrderStatusEditor order={order} />}
+          onViewSmsHistory={(orderId) => setSelectedOrderIdForSms(orderId)}
         />
       ) : null}
+
+      <AdminSmsHistoryModal
+        orderId={selectedOrderIdForSms}
+        open={Boolean(selectedOrderIdForSms)}
+        onClose={() => setSelectedOrderIdForSms(null)}
+      />
 
       <AdminRestockModal
         open={isRestockModalOpen}
@@ -2454,8 +2524,8 @@ export default function AdminDashboard() {
         restockColorOptions={restockColorOptions}
         categories={categories}
         generatedRestockSku={generatedRestockSku}
-        restockPiecesToAdd={restockPiecesToAdd}
-        setRestockPiecesToAdd={setRestockPiecesToAdd}
+        restockQtyToAdd={restockQtyToAdd}
+        setRestockQtyToAdd={setRestockQtyToAdd}
         updateRestockForm={updateRestockForm}
         restockFormError={restockFormError}
         isSubmitting={adjustInventoryMutation.isPending}

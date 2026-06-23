@@ -260,6 +260,7 @@ type AdminOrdersSectionProps = {
   statusVariant: Record<string, 'default' | 'secondary' | 'outline' | 'muted'>
   formatCurrency: (value: number) => string
   renderStatusEditor: (order: Order) => ReactNode
+  onViewSmsHistory: (orderId: string) => void
 }
 
 export function AdminOrdersSection({
@@ -267,6 +268,7 @@ export function AdminOrdersSection({
   statusVariant,
   formatCurrency,
   renderStatusEditor,
+  onViewSmsHistory,
 }: AdminOrdersSectionProps) {
   return (
     <div className="mt-8">
@@ -284,10 +286,24 @@ export function AdminOrdersSection({
                     <Badge variant={statusVariant[order.status]}>{order.status}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{new Date(order.createdAtUtc).toLocaleString()}</p>
+                  <p className="mt-1 text-xs text-[#64748b]">
+                    Order No. <span className="font-mono text-[#334155]">ORD-{order.id.slice(0, 8).toUpperCase()}</span>
+                  </p>
                 </div>
                 <p className="font-medium">{formatCurrency(order.total)}</p>
               </div>
-              <div className="mt-3">{renderStatusEditor(order)}</div>
+              <div className="mt-3 flex flex-col gap-3">
+                {renderStatusEditor(order)}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => onViewSmsHistory(order.id)}
+                    className="inline-flex h-8 items-center rounded-lg border border-[#d7dfeb] bg-white px-3 text-xs font-medium text-[#475569] transition hover:bg-[#f8fafc] hover:text-[#0f172a]"
+                  >
+                    View SMS Logs
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -20,51 +20,104 @@ public static class DatabaseSeeder
             }
         }
 
+        // ── One-time migration: replace old non-clothing categories ──
+        var oldSlugs = new HashSet<string> { "home", "workspace", "travel", "apparel" };
+        var existingCategories = await dbContext.Categories.ToListAsync(cancellationToken);
+        var hasOldCategories = existingCategories.Any(c => oldSlugs.Contains(c.Slug));
+
+        if (hasOldCategories)
+        {
+            // Define the new clothing categories
+            var newCategoryDefs = new[]
+            {
+                (Name: "Tops", Slug: "tops"),
+                (Name: "Bottoms", Slug: "bottoms"),
+                (Name: "Dresses", Slug: "dresses"),
+                (Name: "Outerwear", Slug: "outerwear"),
+                (Name: "Accessories", Slug: "accessories"),
+            };
+
+            // Create new categories that don't already exist
+            foreach (var def in newCategoryDefs)
+            {
+                if (!existingCategories.Any(c => c.Slug == def.Slug))
+                {
+                    dbContext.Categories.Add(new Category { Name = def.Name, Slug = def.Slug });
+                }
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Reload to get IDs
+            var allCategories = await dbContext.Categories.ToListAsync(cancellationToken);
+            var topsId = allCategories.First(c => c.Slug == "tops").Id;
+
+            // Reassign products from old categories to "Tops" as a safe default
+            var oldCategoryIds = allCategories
+                .Where(c => oldSlugs.Contains(c.Slug))
+                .Select(c => c.Id)
+                .ToHashSet();
+
+            var productsToReassign = await dbContext.Products
+                .Where(p => oldCategoryIds.Contains(p.CategoryId))
+                .ToListAsync(cancellationToken);
+
+            foreach (var product in productsToReassign)
+            {
+                product.CategoryId = topsId;
+            }
+
+            // Remove old categories
+            var categoriesToRemove = allCategories.Where(c => oldSlugs.Contains(c.Slug)).ToList();
+            dbContext.Categories.RemoveRange(categoriesToRemove);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         if (!await dbContext.Categories.AnyAsync(cancellationToken))
         {
-            var apparel = new Category { Name = "Apparel", Slug = "apparel" };
-            var home = new Category { Name = "Home", Slug = "home" };
-            var workspace = new Category { Name = "Workspace", Slug = "workspace" };
-            var travel = new Category { Name = "Travel", Slug = "travel" };
+            var tops = new Category { Name = "Tops", Slug = "tops" };
+            var bottoms = new Category { Name = "Bottoms", Slug = "bottoms" };
+            var dresses = new Category { Name = "Dresses", Slug = "dresses" };
+            var outerwear = new Category { Name = "Outerwear", Slug = "outerwear" };
+            var accessories = new Category { Name = "Accessories", Slug = "accessories" };
 
-            dbContext.Categories.AddRange(apparel, home, workspace, travel);
+            dbContext.Categories.AddRange(tops, bottoms, dresses, outerwear, accessories);
 
             dbContext.Products.AddRange(
                 new Product
                 {
-                    Name = "Linen Utility Jacket",
-                    Slug = "linen-utility-jacket",
-                    Description = "Breathable everyday outerwear with durable pocket construction.",
-                    Price = 128m,
-                    StockQuantity = 18,
-                    Category = apparel
+                    Name = "Oversized Cotton Tee",
+                    Slug = "oversized-cotton-tee",
+                    Description = "Relaxed-fit heavyweight cotton tee with dropped shoulders and ribbed crew neck.",
+                    Price = 680m,
+                    StockQuantity = 45,
+                    Category = tops
                 },
                 new Product
                 {
-                    Name = "Ceramic Pour-Over Set",
-                    Slug = "ceramic-pour-over-set",
-                    Description = "Compact brewing set with reusable filter and ribbed server.",
-                    Price = 74m,
+                    Name = "Slim Fit Chinos",
+                    Slug = "slim-fit-chinos",
+                    Description = "Stretch cotton chinos with a tapered leg and clean front for everyday versatility.",
+                    Price = 1280m,
                     StockQuantity = 32,
-                    Category = home
+                    Category = bottoms
                 },
                 new Product
                 {
-                    Name = "Modular Desk Lamp",
-                    Slug = "modular-desk-lamp",
-                    Description = "Weighted base task light with warm dimming and low glare shade.",
-                    Price = 96m,
-                    StockQuantity = 11,
-                    Category = workspace
+                    Name = "Wrap Midi Dress",
+                    Slug = "wrap-midi-dress",
+                    Description = "Elegant wrap silhouette in fluid fabric with adjustable waist tie and midi length.",
+                    Price = 1950m,
+                    StockQuantity = 18,
+                    Category = dresses
                 },
                 new Product
                 {
-                    Name = "Trail Daypack 18L",
-                    Slug = "trail-daypack-18l",
-                    Description = "Weather-resistant everyday pack with fast-access exterior pockets.",
-                    Price = 142m,
-                    StockQuantity = 24,
-                    Category = travel
+                    Name = "Wool Blend Overcoat",
+                    Slug = "wool-blend-overcoat",
+                    Description = "Structured single-breasted overcoat in a warm wool blend with notch lapels.",
+                    Price = 3450m,
+                    StockQuantity = 12,
+                    Category = outerwear
                 });
 
             dbContext.Coupons.Add(new Coupon
@@ -77,6 +130,7 @@ public static class DatabaseSeeder
 
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+
 
         await EnsureUserAsync(dbContext, userManager, "admin@booking.local", "Admin123!", "Store", "Admin", "Admin");
         await EnsureUserAsync(dbContext, userManager, "customer@booking.local", "Customer123!", "Demo", "Customer", "Customer");

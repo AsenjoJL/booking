@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "VvXUcoTVux6Vja/uBxYarf3gKpX2h9YZIw0wXUkyMR8=",
+  "Hash": "ZtliFFh/rh/RiDas6187wjbSMoxMifoROWtHJfx1b3Q=",
   "Source": "Booking.Api",
   "BasePath": "_content/Booking.Api",
   "Mode": "Default",
@@ -16,6 +16,27 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp",
+      "SourceId": "Booking.Api",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\",
+      "BasePath": "_content/Booking.Api",
+      "RelativePath": "uploads/products/19b56fd589684a46bfc484dc728b5c30#[.{fingerprint}]?.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "ndwlyzx0sb",
+      "Integrity": "1YqrTJXHmw/79CmmkZqN2uIhHO0r8WpU+fEJUg/aljc=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp"
+    },
     {
       "Identity": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
       "SourceId": "Booking.Api",
@@ -123,6 +144,88 @@
     }
   ],
   "Endpoints": [
+    {
+      "Route": "uploads/products/19b56fd589684a46bfc484dc728b5c30.ndwlyzx0sb.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "377204"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"1YqrTJXHmw/79CmmkZqN2uIhHO0r8WpU+fEJUg/aljc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 22 Jun 2026 14:10:11 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ndwlyzx0sb"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/products/19b56fd589684a46bfc484dc728b5c30.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-1YqrTJXHmw/79CmmkZqN2uIhHO0r8WpU+fEJUg/aljc="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/products/19b56fd589684a46bfc484dc728b5c30.webp",
+      "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "377204"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"1YqrTJXHmw/79CmmkZqN2uIhHO0r8WpU+fEJUg/aljc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 22 Jun 2026 14:10:11 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-1YqrTJXHmw/79CmmkZqN2uIhHO0r8WpU+fEJUg/aljc="
+        }
+      ]
+    },
     {
       "Route": "uploads/products/3958fc4fbffd4378b02f91648fbec611.l7kq4iz8za.png",
       "AssetFile": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",

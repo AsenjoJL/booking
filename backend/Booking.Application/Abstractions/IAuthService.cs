@@ -10,4 +10,7 @@ public interface IAuthService
     Task RevokeRefreshTokenAsync(Guid userId, RevokeRefreshTokenRequestDto request, CancellationToken cancellationToken);
     Task<UserDto> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<UserDto> UpdateCurrentUserAsync(Guid userId, UpdateProfileRequestDto request, CancellationToken cancellationToken);
+    Task VerifyEmailAsync(string userId, string token, CancellationToken cancellationToken);
+    Task ResendVerificationEmailAsync(string email, CancellationToken cancellationToken);
 }
+

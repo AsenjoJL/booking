@@ -14,9 +14,9 @@ type RestockDisplayProduct = {
   warehouseCode?: string
   color?: string
   size?: string
-  piecesOnHand?: number
-  piecesReserved?: number
-  piecesAvailable?: number
+  qtyOnHand?: number
+  qtyReserved?: number
+  qtyAvailable?: number
 }
 
 type RestockFormShape = {
@@ -45,8 +45,8 @@ type AdminRestockModalProps = {
   restockColorOptions: string[]
   categories: CategoryOption[]
   generatedRestockSku: string
-  restockPiecesToAdd: string
-  setRestockPiecesToAdd: (value: string) => void
+  restockQtyToAdd: string
+  setRestockQtyToAdd: (value: string) => void
   updateRestockForm: (patch: Partial<RestockFormShape>) => void
   restockFormError: string | null
   isSubmitting: boolean
@@ -64,8 +64,8 @@ export default function AdminRestockModal({
   restockColorOptions,
   categories,
   generatedRestockSku,
-  restockPiecesToAdd,
-  setRestockPiecesToAdd,
+  restockQtyToAdd,
+  setRestockQtyToAdd,
   updateRestockForm,
   restockFormError,
   isSubmitting,
@@ -234,12 +234,12 @@ export default function AdminRestockModal({
 
                 <div className="grid gap-5 md:grid-cols-3">
                   <label className="space-y-2 text-sm">
-                    <span className="font-normal text-foreground">Pieces</span>
+                    <span className="font-normal text-foreground">Qty</span>
                     <Input
                       type="number"
                       min="0"
-                      value={restockPiecesToAdd}
-                      onChange={(event) => setRestockPiecesToAdd(event.target.value)}
+                      value={restockQtyToAdd}
+                      onChange={(event) => setRestockQtyToAdd(event.target.value)}
                       className="h-12 rounded-xl border-[#dbe4f0] bg-white text-sm shadow-[0_2px_8px_rgba(15,23,42,0.04)]"
                     />
                   </label>
@@ -346,17 +346,17 @@ export default function AdminRestockModal({
                     <div>
                       <p className="text-xs uppercase tracking-[0.14em] text-[#5b7ab8]">Current</p>
                       <p className="mt-1 text-3xl font-medium text-foreground">
-                        {(restockDisplayProduct?.piecesOnHand ?? 0) + Math.max(0, Number(restockPiecesToAdd) || 0)}
+                        {(restockDisplayProduct?.qtyOnHand ?? 0) + Math.max(0, Number(restockQtyToAdd) || 0)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.14em] text-[#5b7ab8]">Reserved</p>
-                      <p className="mt-1 text-3xl font-medium text-foreground">{restockDisplayProduct?.piecesReserved ?? 0}</p>
+                      <p className="mt-1 text-3xl font-medium text-foreground">{restockDisplayProduct?.qtyReserved ?? 0}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.14em] text-[#5b7ab8]">Available</p>
                       <p className="mt-1 text-3xl font-medium text-foreground">
-                        {(restockDisplayProduct?.piecesAvailable ?? 0) + Math.max(0, Number(restockPiecesToAdd) || 0)}
+                        {(restockDisplayProduct?.qtyAvailable ?? 0) + Math.max(0, Number(restockQtyToAdd) || 0)}
                       </p>
                     </div>
                   </div>

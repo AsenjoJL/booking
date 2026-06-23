@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 using Booking.Application.Abstractions;
 using Booking.Application.DTOs.Auth;
 using Booking.Application.Exceptions;
@@ -7,8 +8,10 @@ using Booking.Domain.Entities;
 using Booking.Infrastructure.Data;
 using Booking.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -21,6 +24,8 @@ public sealed class AuthService(
     BookingDbContext dbContext,
     IOptions<JwtOptions> jwtOptions,
     IDistributedCache cache,
+    IEmailService emailService,
+    IConfiguration configuration,
     ILogger<AuthService> logger,
     ICacheMetricsCollector cacheMetrics) : IAuthService
 {
@@ -46,7 +51,7 @@ public sealed class AuthService(
             Email = request.Email,
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             LockoutEnabled = true
         };
 
@@ -57,6 +62,17 @@ public sealed class AuthService(
         }
 
         await userManager.AddToRoleAsync(user, "Customer");
+
+        // Send verification email (non-blocking — registration still succeeds if email fails)
+        try
+        {
+            await SendVerificationEmailAsync(user, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Verification email failed to send for user {UserId} during registration.", user.Id);
+        }
+
         return await IssueSessionAsync(user, familyId: null, cancellationToken);
     }
 
@@ -76,6 +92,11 @@ public sealed class AuthService(
         {
             await userManager.AccessFailedAsync(user);
             throw new AppUnauthorizedException("Invalid credentials.");
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            throw new AppUnauthorizedException("Please verify your email address before signing in. Check your inbox for the verification link.");
         }
 
         await userManager.ResetAccessFailedCountAsync(user);
@@ -261,6 +282,64 @@ public sealed class AuthService(
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token.Trim()));
         return Convert.ToHexString(bytes);
+    }
+
+    public async Task VerifyEmailAsync(string userId, string token, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await userManager.FindByIdAsync(userId)
+            ?? throw new NotFoundException("User not found.");
+
+        if (user.EmailConfirmed)
+        {
+            // Already verified — idempotent, not an error
+            return;
+        }
+
+        // Decode using WebEncoders to avoid double-URL-decoding issues with Base64
+        var decodedBytes = WebEncoders.Base64UrlDecode(token);
+        var decodedToken = Encoding.UTF8.GetString(decodedBytes);
+
+        var result = await userManager.ConfirmEmailAsync(user, decodedToken);
+        if (!result.Succeeded)
+        {
+            throw new ValidationException("The verification link is invalid or has expired. Please request a new one.");
+        }
+
+        logger.LogInformation("Email verified for user {UserId}.", userId);
+    }
+
+    public async Task ResendVerificationEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var user = await userManager.FindByEmailAsync(email)
+            ?? throw new NotFoundException("No account with that email address was found.");
+
+        if (user.EmailConfirmed)
+        {
+            throw new ConflictException("This email address is already verified.");
+        }
+
+        await SendVerificationEmailAsync(user, cancellationToken);
+    }
+
+    private async Task SendVerificationEmailAsync(User user, CancellationToken cancellationToken)
+    {
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var tokenBytes = Encoding.UTF8.GetBytes(token);
+        var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
+        var frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
+
+        await emailService.SendEmailVerificationAsync(
+            user.Email!,
+            $"{user.FirstName} {user.LastName}".Trim(),
+            verificationLink,
+            cancellationToken);
+
+        logger.LogInformation("Verification email sent to user {UserId}.", user.Id);
     }
 
     private static string GetCurrentUserCacheKey(Guid userId) => $"auth:user:{userId:N}";

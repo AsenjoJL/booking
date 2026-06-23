@@ -112,9 +112,9 @@ internal static class MappingExtensions
                     Color = variant.Color,
                     Size = variant.Size,
                     WarehouseCode = inventory.Warehouse.Code,
-                    PiecesOnHand = inventory.PiecesOnHand,
-                    PiecesReserved = inventory.PiecesReserved,
-                    PiecesAvailable = availableStock,
+                    QtyOnHand = inventory.PiecesOnHand,
+                    QtyReserved = inventory.PiecesReserved,
+                    QtyAvailable = availableStock,
                     LowStockThreshold = variant.LowStockThreshold,
                     IsLowStock = availableStock <= variant.LowStockThreshold,
                     UpdatedAtUtc = inventory.UpdatedAtUtc

@@ -10,4 +10,5 @@ public interface IOrderService
     Task<OrderDto> CheckoutAsync(Guid userId, CreateOrderDto request, CancellationToken cancellationToken);
     Task<OrderDto> GuestCheckoutAsync(GuestCreateOrderDto request, CancellationToken cancellationToken);
     Task<OrderDto> UpdateStatusAsync(Guid orderId, UpdateOrderStatusDto request, CancellationToken cancellationToken);
+    Task<IReadOnlyList<OrderNotificationLogDto>> GetOrderNotificationsAsync(Guid orderId, CancellationToken cancellationToken);
 }

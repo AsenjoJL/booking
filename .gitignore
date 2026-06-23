@@ -1,0 +1,26 @@
+# Node / JS
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+
+# .NET / C#
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDE / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json

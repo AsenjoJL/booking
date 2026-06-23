@@ -17,7 +17,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem)
   const cardRef = useRef<HTMLElement | null>(null)
   const stockMeta =
-    product.stock <= 0 ? 'Sold out' : product.stock <= 10 ? 'Low stock' : `${product.stock} pieces ready`
+    product.stock <= 0 ? 'Sold out' : product.stock <= 10 ? 'Low stock' : `${product.stock} qty ready`
   const rotateXInput = useMotionValue(0)
   const rotateYInput = useMotionValue(0)
   const rotateX = useSpring(useTransform(rotateXInput, [-0.5, 0.5], [10, -10]), {

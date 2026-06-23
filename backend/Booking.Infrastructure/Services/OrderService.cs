@@ -19,6 +19,8 @@ public sealed class OrderService(
     IOrderJobScheduler orderJobScheduler,
     IInventoryLockService inventoryLockService,
     IInventoryLedgerService inventoryLedgerService,
+    IEmailService emailService,
+    ISmsService smsService,
     ILogger<OrderService> logger,
     ICacheMetricsCollector cacheMetrics) : IOrderService
 {
@@ -302,6 +304,66 @@ public sealed class OrderService(
             await InvalidateOrderCachesAsync(created.UserId, created.Id, cancellationToken);
             await TryCacheOrderAsync(cacheKey, createdDto, cancellationToken);
             logger.LogInformation("Checkout completed for order {OrderId} and user {UserId}.", created.Id, userId);
+
+            // Fetch user details before the background task to prevent accessing a disposed DbContext
+            string? email = null;
+            string? name = null;
+            string? phone = created.ShippingPhoneNumber;
+            var emailUser = await dbContext.Users.FindAsync(userId);
+            if (emailUser is not null)
+            {
+                email = emailUser.Email;
+                name = $"{emailUser.FirstName} {emailUser.LastName}".Trim();
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    phone = emailUser.PhoneNumber;
+                }
+            }
+
+            var createdOrderId = created.Id;
+            var finalTotal = created.Total;
+            var statusStr = created.Status.ToString();
+
+            // Send order confirmation email and SMS (fire-and-forget, non-blocking)
+            _ = Task.Run(async () =>
+            {
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    try
+                    {
+                        await emailService.SendOrderConfirmationAsync(
+                            email,
+                            name ?? "Customer",
+                            createdOrderId,
+                            finalTotal,
+                            statusStr,
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Order confirmation email failed for order {OrderId}.", createdOrderId);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    try
+                    {
+                        await smsService.SendOrderConfirmationSmsAsync(
+                            phone,
+                            name ?? "Customer",
+                            createdOrderId,
+                            finalTotal,
+                            statusStr,
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Order confirmation SMS failed for order {OrderId}.", createdOrderId);
+                    }
+                }
+            });
+
             return createdDto;
         });
     }
@@ -495,6 +557,47 @@ public sealed class OrderService(
             var createdDto = created.ToDto();
             await InvalidateOrderCachesAsync(order.UserId, created.Id, cancellationToken);
             await TryCacheOrderAsync(cacheKey, createdDto, cancellationToken);
+
+            // Send guest order confirmation email and SMS (fire-and-forget)
+            _ = Task.Run(async () =>
+            {
+                if (!string.IsNullOrWhiteSpace(created.GuestEmail))
+                {
+                    try
+                    {
+                        await emailService.SendOrderConfirmationAsync(
+                            created.GuestEmail,
+                            created.GuestRecipientName ?? "Customer",
+                            created.Id,
+                            created.Total,
+                            created.Status.ToString(),
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Guest order confirmation email failed for order {OrderId}.", created.Id);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(created.GuestPhoneNumber))
+                {
+                    try
+                    {
+                        await smsService.SendOrderConfirmationSmsAsync(
+                            created.GuestPhoneNumber,
+                            created.GuestRecipientName ?? "Customer",
+                            created.Id,
+                            created.Total,
+                            created.Status.ToString(),
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Guest order confirmation SMS failed for order {OrderId}.", created.Id);
+                    }
+                }
+            });
+
             return createdDto;
         });
     }
@@ -546,6 +649,86 @@ public sealed class OrderService(
 
             var dto = order.ToDto();
             await InvalidateOrderCachesAsync(order.UserId, order.Id, cancellationToken);
+
+            // Fetch email recipient data before the background task
+            string recipientEmail = string.Empty;
+            string recipientName = "Customer";
+            string recipientPhone = string.Empty;
+
+            if (order.UserId.HasValue)
+            {
+                var emailUser = await dbContext.Users.FindAsync(order.UserId.Value);
+                if (emailUser is not null)
+                {
+                    recipientEmail = emailUser.Email ?? string.Empty;
+                    recipientName = $"{emailUser.FirstName} {emailUser.LastName}".Trim();
+                    
+                    if (!string.IsNullOrWhiteSpace(order.ShippingPhoneNumber))
+                    {
+                        recipientPhone = order.ShippingPhoneNumber;
+                    }
+                    else if (order.ShippingAddressId.HasValue)
+                    {
+                        var address = await dbContext.Addresses.FindAsync(order.ShippingAddressId.Value);
+                        recipientPhone = address?.PhoneNumber ?? emailUser.PhoneNumber ?? string.Empty;
+                    }
+                    else
+                    {
+                        recipientPhone = emailUser.PhoneNumber ?? string.Empty;
+                    }
+                }
+            }
+            else
+            {
+                recipientEmail = order.GuestEmail ?? string.Empty;
+                recipientName = order.GuestRecipientName ?? "Customer";
+                recipientPhone = order.GuestPhoneNumber ?? string.Empty;
+            }
+
+            var targetOrderId = order.Id;
+            var statusStr = status.ToString();
+
+            // Send status update email and SMS (fire-and-forget)
+            _ = Task.Run(async () =>
+            {
+                if (!string.IsNullOrWhiteSpace(recipientEmail))
+                {
+                    try
+                    {
+                        await emailService.SendOrderStatusUpdateAsync(
+                            recipientEmail,
+                            recipientName,
+                            targetOrderId,
+                            statusStr,
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Order status update email failed for order {OrderId}.", targetOrderId);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(recipientPhone))
+                {
+                    try
+                    {
+                        await smsService.SendOrderStatusUpdateSmsAsync(
+                            recipientPhone,
+                            recipientName,
+                            targetOrderId,
+                            statusStr,
+                            CancellationToken.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Order status update SMS failed for order {OrderId}.", targetOrderId);
+                    }
+                }
+                else
+                {
+                    logger.LogWarning("SMS skipped because recipient phone number is empty for order {OrderId}.", targetOrderId);
+                }
+            });
 
             if (status == OrderStatus.Confirmed)
             {
@@ -621,13 +804,14 @@ public sealed class OrderService(
 
         var allowed = order.Status switch
         {
-            OrderStatus.PendingPayment => new[] { OrderStatus.Confirmed, OrderStatus.Cancelled, OrderStatus.Expired },
-            OrderStatus.Pending => new[] { OrderStatus.Confirmed, OrderStatus.Cancelled, OrderStatus.Expired },
-            OrderStatus.Confirmed => new[] { OrderStatus.Processing, OrderStatus.Cancelled, OrderStatus.Expired },
+            OrderStatus.PendingPayment => new[] { OrderStatus.Confirmed, OrderStatus.Shipped, OrderStatus.Cancelled, OrderStatus.Expired },
+            OrderStatus.Pending => new[] { OrderStatus.Confirmed, OrderStatus.Shipped, OrderStatus.Cancelled, OrderStatus.Expired },
+            OrderStatus.Confirmed => new[] { OrderStatus.Processing, OrderStatus.Shipped, OrderStatus.Cancelled, OrderStatus.Expired },
             OrderStatus.Processing => new[] { OrderStatus.Shipped, OrderStatus.Cancelled },
-            OrderStatus.Shipped => new[] { OrderStatus.Delivered, OrderStatus.Cancelled },
+            OrderStatus.Shipped => new[] { OrderStatus.OutForDelivery, OrderStatus.Delivered, OrderStatus.Cancelled },
+            OrderStatus.OutForDelivery => new[] { OrderStatus.Delivered, OrderStatus.Cancelled },
             OrderStatus.Delivered => new[] { OrderStatus.Refunded },
-            OrderStatus.Paid => new[] { OrderStatus.Processing, OrderStatus.Cancelled },
+            OrderStatus.Paid => new[] { OrderStatus.Processing, OrderStatus.Shipped, OrderStatus.Cancelled },
             _ => Array.Empty<OrderStatus>()
         };
 
@@ -897,5 +1081,24 @@ public sealed class OrderService(
         {
             throw new ValidationException($"{prefix} address is incomplete.");
         }
+    }
+
+    public async Task<IReadOnlyList<OrderNotificationLogDto>> GetOrderNotificationsAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        var logs = await dbContext.OrderNotificationLogs
+            .AsNoTracking()
+            .Where(x => x.OrderId == orderId)
+            .OrderByDescending(x => x.SentAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return logs.Select(x => new OrderNotificationLogDto(
+            x.Id,
+            x.OrderId,
+            x.PhoneNumber,
+            x.Message,
+            x.Status,
+            x.SentAtUtc,
+            x.ErrorMessage
+        )).ToList();
     }
 }

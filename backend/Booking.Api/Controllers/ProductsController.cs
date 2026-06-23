@@ -4,12 +4,15 @@ using Booking.Application.DTOs.Products;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Booking.Application.Features.Products.Queries;
+
+using MediatR;
 
 namespace Booking.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class ProductsController(IProductService productService, IWebHostEnvironment environment) : ControllerBase
+public sealed class ProductsController(ISender sender, IProductService productService, IWebHostEnvironment environment) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -17,7 +20,7 @@ public sealed class ProductsController(IProductService productService, IWebHostE
         [FromQuery] ProductListQueryDto query,
         CancellationToken cancellationToken)
     {
-        var result = await productService.GetProductsAsync(query, cancellationToken);
+        var result = await sender.Send(new GetProductsQuery(query, IncludeInactive: false), cancellationToken);
         return Ok(result);
     }
 
@@ -28,7 +31,7 @@ public sealed class ProductsController(IProductService productService, IWebHostE
         [FromQuery] ProductListQueryDto query,
         CancellationToken cancellationToken)
     {
-        var result = await productService.GetAdminProductsAsync(query, cancellationToken);
+        var result = await sender.Send(new GetProductsQuery(query, IncludeInactive: true), cancellationToken);
         return Ok(result);
     }
 
@@ -36,7 +39,7 @@ public sealed class ProductsController(IProductService productService, IWebHostE
     [AllowAnonymous]
     public async Task<ActionResult<ProductDetailDto>> GetBySlug(string slug, CancellationToken cancellationToken)
     {
-        var result = await productService.GetBySlugAsync(slug, cancellationToken);
+        var result = await sender.Send(new GetProductBySlugQuery(slug, IncludeInactive: false), cancellationToken);
         return Ok(result);
     }
 
@@ -45,7 +48,7 @@ public sealed class ProductsController(IProductService productService, IWebHostE
     [EnableRateLimiting("admin")]
     public async Task<ActionResult<ProductDetailDto>> GetAdminBySlug(string slug, CancellationToken cancellationToken)
     {
-        var result = await productService.GetAdminBySlugAsync(slug, cancellationToken);
+        var result = await sender.Send(new GetProductBySlugQuery(slug, IncludeInactive: true), cancellationToken);
         return Ok(result);
     }
 

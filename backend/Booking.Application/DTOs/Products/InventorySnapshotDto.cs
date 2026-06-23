@@ -10,9 +10,9 @@ public sealed class InventorySnapshotDto
     public string? Color { get; init; }
     public string? Size { get; init; }
     public required string WarehouseCode { get; init; }
-    public required int PiecesOnHand { get; init; }
-    public required int PiecesReserved { get; init; }
-    public required int PiecesAvailable { get; init; }
+    public required int QtyOnHand { get; init; }
+    public required int QtyReserved { get; init; }
+    public required int QtyAvailable { get; init; }
     public required int LowStockThreshold { get; init; }
     public required bool IsLowStock { get; init; }
     public required DateTime UpdatedAtUtc { get; init; }

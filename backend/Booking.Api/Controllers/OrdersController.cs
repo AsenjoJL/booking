@@ -85,4 +85,15 @@ public sealed class OrdersController(
         var result = await orderService.UpdateStatusAsync(id, request, cancellationToken);
         return Ok(result);
     }
+
+    [HttpGet("{id:guid}/notifications")]
+    [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult<IReadOnlyList<OrderNotificationLogDto>>> GetNotifications(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var result = await orderService.GetOrderNotificationsAsync(id, cancellationToken);
+        return Ok(result);
+    }
 }

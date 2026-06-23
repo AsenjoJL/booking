@@ -11,5 +11,6 @@ public enum OrderStatus
     PendingPayment = 6,
     Confirmed = 7,
     Expired = 8,
-    Refunded = 9
+    Refunded = 9,
+    OutForDelivery = 10
 }

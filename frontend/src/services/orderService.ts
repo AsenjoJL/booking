@@ -64,4 +64,8 @@ export const orderService = {
     })
     return data
   },
+  async getNotifications(orderId: string) {
+    const { data } = await api.get(`/orders/${orderId}/notifications`)
+    return data
+  },
 }

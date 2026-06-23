@@ -281,7 +281,7 @@ export function AddressBook({
       )}
 
       {isFormVisible ? (
-        <form className="border bg-[#fbf8f4] p-6 sm:p-7" onSubmit={onSubmit}>
+        <div className="border bg-[#fbf8f4] p-6 sm:p-7" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void onSubmit() } }}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#d36d3d]">
@@ -378,9 +378,10 @@ export function AddressBook({
 
           <div className="mt-4 flex flex-wrap gap-3">
             <Button
-              type="submit"
+              type="button"
               disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
               className="h-12 rounded-none bg-[#cf6c3e] px-6 text-xs uppercase tracking-[0.22em] hover:bg-[#ba5d33]"
+              onClick={() => void onSubmit()}
             >
               {editingAddress ? 'Save address' : 'Add address'}
             </Button>
@@ -397,8 +398,9 @@ export function AddressBook({
               Cancel
             </Button>
           </div>
-        </form>
+        </div>
       ) : null}
     </div>
   )
 }
+

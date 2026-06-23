@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,24 +11,34 @@
   }
 
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --primary: 170 69% 24%;
+    --background: 36 20% 97%;
+    --foreground: 20 8% 7%;
+    --card: 36 20% 97%;
+    --card-foreground: 20 8% 7%;
+    --primary: 19 62% 47%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 27 74% 55%;
-    --secondary-foreground: 25 95% 9%;
-    --muted: 40 28% 95%;
-    --muted-foreground: 220 9% 42%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 205 100% 10%;
+    --secondary: 32 30% 85%;
+    --secondary-foreground: 20 8% 12%;
+    --muted: 36 22% 93%;
+    --muted-foreground: 28 12% 46%;
+    --accent: 19 62% 47%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 37 22% 84%;
-    --input: 37 22% 84%;
-    --ring: 170 69% 24%;
+    --border: 32 20% 86%;
+    --input: 32 20% 86%;
+    --ring: 19 62% 47%;
     --radius: 0.5rem;
+
+    /* Fashion brand tokens */
+    --fashion-dark: #0F0E0D;
+    --fashion-accent: #C4622D;
+    --fashion-accent-light: #D97B4A;
+    --fashion-sand: #E8DDD0;
+    --fashion-warm: #FAF8F5;
+    --fashion-muted: #8B7355;
+    --fashion-card: #F4EFE8;
+    --fashion-border: #DDD0C0;
   }
 
   * {
@@ -38,7 +48,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     margin: 0;
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background-color: var(--fashion-warm);
   }
 
   body[data-scroll-locked] {
@@ -60,8 +71,9 @@
 }
 
 @layer components {
+  /* ── Admin shell ─────────────────────────── */
   .admin-shell {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
 
   .admin-shell h1,
@@ -73,6 +85,7 @@
     letter-spacing: -0.025em;
   }
 
+  /* ── Legacy utility classes ───────────────── */
   .lux-page-shell {
     @apply relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8;
   }
@@ -90,26 +103,172 @@
   }
 
   .lux-eyebrow {
-    @apply text-sm font-semibold uppercase tracking-[0.28em] text-[#d36d3d];
+    @apply text-sm font-semibold uppercase tracking-[0.28em] text-[#C4622D];
   }
 
   .lux-heading {
-    @apply font-serif text-5xl leading-none text-[#1f1716] sm:text-6xl;
+    @apply font-serif text-5xl leading-none text-[#0F0E0D] sm:text-6xl;
+  }
+
+  /* ── Fashion typography ───────────────────── */
+  .fashion-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .fashion-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fashion-muted);
+  }
+
+  .fashion-heading {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    color: var(--fashion-dark);
+  }
+
+  /* ── Gradient text ────────────────────────── */
+  .gradient-text {
+    background: linear-gradient(135deg, #C4622D 0%, #E8956A 50%, #C4622D 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  /* ── Shimmer button ───────────────────────── */
+  .shimmer-btn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: none;
+  }
+
+  .shimmer-btn:hover::after {
+    animation: shimmer 0.65s ease forwards;
+  }
+
+  /* ── Card 3D tilt ─────────────────────────── */
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* ── Announcement bar ─────────────────────── */
+  .announcement-wrapper {
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      black 6%,
+      black 94%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      black 6%,
+      black 94%,
+      transparent 100%
+    );
+  }
+
+  .announcement-track {
+    animation: announcement-marquee 30s linear infinite;
+  }
+
+  /* ── Scroll indicator ─────────────────────── */
+  .scroll-bounce {
+    animation: scroll-bounce 2.2s ease-in-out infinite;
+  }
+
+  /* ── Floating label ───────────────────────── */
+  .float-up {
+    animation: float-up 3s ease-in-out infinite;
   }
 }
 
 @layer utilities {
+  /* ── Keyframes ───────────────────────────── */
   @keyframes announcement-marquee {
-    from {
-      transform: translateX(0);
-    }
-
-    to {
-      transform: translateX(-50%);
-    }
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
   }
 
-  .announcement-track {
-    animation: announcement-marquee 24s linear infinite;
+  @keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 160%; }
   }
+
+  @keyframes gradient-shift {
+    0%   { background-position: 0% center; }
+    50%  { background-position: 100% center; }
+    100% { background-position: 0% center; }
+  }
+
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0);   opacity: 0.6; }
+    50%       { transform: translateY(8px); opacity: 1;   }
+  }
+
+  @keyframes float-up {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+  }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0   rgba(196, 98, 45, 0.4); }
+    70%  { box-shadow: 0 0 0 12px rgba(196, 98, 45, 0);  }
+    100% { box-shadow: 0 0 0 0   rgba(196, 98, 45, 0);   }
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  /* ── Utility classes ─────────────────────── */
+  .animate-pulse-ring {
+    animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+  }
+
+  .animate-float {
+    animation: float-up 3s ease-in-out infinite;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-fashion-dark    { background-color: var(--fashion-dark); }
+  .bg-fashion-warm    { background-color: var(--fashion-warm); }
+  .bg-fashion-card    { background-color: var(--fashion-card); }
+  .bg-fashion-sand    { background-color: var(--fashion-sand); }
+  .text-fashion-accent { color: var(--fashion-accent); }
+  .text-fashion-muted  { color: var(--fashion-muted); }
+  .border-fashion      { border-color: var(--fashion-border); }
 }

@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp",
+      "PackagePath": "staticwebassets\\uploads\\products\\19b56fd589684a46bfc484dc728b5c30.webp"
+    },
+    {
       "Id": "C:\\Users\\John Lester\\Desktop\\Booking\\backend\\Booking.Api\\wwwroot\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png",
       "PackagePath": "staticwebassets\\uploads\\products\\3958fc4fbffd4378b02f91648fbec611.png"
     },

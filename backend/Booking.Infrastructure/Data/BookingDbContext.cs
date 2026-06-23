@@ -23,6 +23,7 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Coupon> Coupons => Set<Coupon>();
+    public DbSet<OrderNotificationLog> OrderNotificationLogs => Set<OrderNotificationLog>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)

@@ -99,9 +99,9 @@ export type InventorySnapshot = {
   color?: string | null
   size?: string | null
   warehouseCode: string
-  piecesOnHand: number
-  piecesReserved: number
-  piecesAvailable: number
+  qtyOnHand: number
+  qtyReserved: number
+  qtyAvailable: number
   lowStockThreshold: number
   isLowStock: boolean
   updatedAtUtc: string
@@ -113,9 +113,9 @@ export type InventoryMovement = {
   sku: string
   warehouseCode: string
   movementType: string
-  piecesDelta: number
-  piecesOnHandAfter: number
-  piecesReservedAfter: number
+  qtyDelta: number
+  qtyOnHandAfter: number
+  qtyReservedAfter: number
   referenceType?: string | null
   referenceId?: string | null
   note?: string | null
@@ -366,10 +366,10 @@ export const productService = {
     const { data } = await api.get<InventoryMovement[]>(`/products/${productId}/inventory/history`)
     return data
   },
-  async adjustInventory(productId: string, piecesOnHand: number, piecesReserved = 0, note?: string) {
+  async adjustInventory(productId: string, qtyOnHand: number, qtyReserved = 0, note?: string) {
     const { data } = await api.post<InventorySnapshot>(`/products/${productId}/inventory/adjust`, {
-      piecesOnHand,
-      piecesReserved,
+      qtyOnHand,
+      qtyReserved,
       note,
     })
     return data

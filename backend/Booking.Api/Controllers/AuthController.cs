@@ -72,4 +72,25 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         await authService.RevokeRefreshTokenAsync(User.GetRequiredUserId(), request, cancellationToken);
         return NoContent();
     }
+
+    [HttpGet("verify-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyEmail(
+        [FromQuery] string userId,
+        [FromQuery] string token,
+        CancellationToken cancellationToken)
+    {
+        await authService.VerifyEmailAsync(userId, token, cancellationToken);
+        return Ok(new { message = "Email verified successfully. You can now sign in." });
+    }
+
+    [HttpPost("resend-verification")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResendVerification(
+        [FromBody] ResendVerificationRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        await authService.ResendVerificationEmailAsync(request.Email, cancellationToken);
+        return Ok(new { message = "Verification email sent. Please check your inbox." });
+    }
 }
