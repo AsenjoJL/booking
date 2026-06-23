@@ -13,6 +13,7 @@ const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | '
   Processing: 'secondary',
   Paid: 'default',
   Shipped: 'secondary',
+  OutForDelivery: 'secondary',
   Delivered: 'outline',
   Cancelled: 'outline',
   Expired: 'outline',
