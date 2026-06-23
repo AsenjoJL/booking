@@ -9,8 +9,7 @@ public static class DatabaseSchemaBootstrapper
         CancellationToken cancellationToken = default)
     {
         await dbContext.Database.EnsureCreatedAsync(cancellationToken);
-        await dbContext.Database.ExecuteSqlRawAsync("""CREATE EXTENSION IF NOT EXISTS pgcrypto;""", cancellationToken);
-        await dbContext.Database.ExecuteSqlRawAsync("""CREATE EXTENSION IF NOT EXISTS pg_trgm;""", cancellationToken);
+
         await EnsureRefreshTokensTableAsync(dbContext, cancellationToken);
         await EnsureOrderCheckoutColumnsAsync(dbContext, cancellationToken);
         await EnsureProductCatalogColumnsAsync(dbContext, cancellationToken);
