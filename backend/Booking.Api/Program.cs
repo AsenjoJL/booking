@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(origin => 
             {
                 var host = new Uri(origin).Host;
-                return host == "localhost" || host == "127.0.0.1";
+                return host == "localhost" || host == "127.0.0.1" || host == "booking-murex-two.vercel.app";
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
