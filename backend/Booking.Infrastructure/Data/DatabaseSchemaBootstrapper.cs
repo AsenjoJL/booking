@@ -8,7 +8,15 @@ public static class DatabaseSchemaBootstrapper
         BookingDbContext dbContext,
         CancellationToken cancellationToken = default)
     {
-        await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+        var tableExists = await dbContext.Database
+            .SqlQueryRaw<int>("SELECT 1 FROM pg_tables WHERE tablename = 'AspNetUsers'")
+            .AnyAsync(cancellationToken);
+
+        if (!tableExists)
+        {
+            var databaseCreator = dbContext.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
+            await databaseCreator.CreateTablesAsync(cancellationToken);
+        }
 
         await EnsureRefreshTokensTableAsync(dbContext, cancellationToken);
         await EnsureOrderCheckoutColumnsAsync(dbContext, cancellationToken);
