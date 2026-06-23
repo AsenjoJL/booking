@@ -19,6 +19,8 @@ public static class DatabaseSchemaBootstrapper
             await databaseCreator.CreateTablesAsync(cancellationToken);
         }
 
+        await dbContext.Database.ExecuteSqlRawAsync("""CREATE EXTENSION IF NOT EXISTS pg_trgm;""", cancellationToken);
+
         await EnsureRefreshTokensTableAsync(dbContext, cancellationToken);
         await EnsureOrderCheckoutColumnsAsync(dbContext, cancellationToken);
         await EnsureProductCatalogColumnsAsync(dbContext, cancellationToken);
