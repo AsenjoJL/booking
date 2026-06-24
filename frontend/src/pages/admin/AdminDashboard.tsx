@@ -1429,7 +1429,12 @@ export default function AdminDashboard() {
       await createMutation.mutateAsync(payload)
       setProductSuccessMessage(`${values.name.trim()} added successfully.`)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to save the product right now.'
+      let message = 'Unable to save the product right now.'
+      if (axios.isAxiosError(error)) {
+        message = (error.response?.data?.error as string) || error.message
+      } else if (error instanceof Error) {
+        message = error.message
+      }
       setProductSubmissionError(message)
       setAdminErrorMessage(message)
     }
