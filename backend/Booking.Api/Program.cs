@@ -37,27 +37,36 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionDirectory))
     .SetApplicationName("Booking.Api");
 builder.Services.AddDistributedMemoryCache();
+var allowedCorsOrigins = new List<string>
+{
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "https://127.0.0.1:5173",
+    "https://localhost:5173"
+};
+
+var frontendUrl = builder.Configuration["FrontendUrl"];
+if (!string.IsNullOrWhiteSpace(frontendUrl))
+{
+    allowedCorsOrigins.Add(frontendUrl.TrimEnd('/'));
+}
+
 var configuredCorsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
-var allowedCorsOrigins = configuredCorsOrigins is { Length: > 0 }
-    ? configuredCorsOrigins
-    : new[]
-    {
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
-        "https://127.0.0.1:5173",
-        "https://localhost:5173"
-    };
+if (configuredCorsOrigins is { Length: > 0 })
+{
+    allowedCorsOrigins.AddRange(configuredCorsOrigins);
+}
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins(allowedCorsOrigins)
+            .WithOrigins(allowedCorsOrigins.Distinct().ToArray())
             .SetIsOriginAllowed(origin => 
             {
                 var host = new Uri(origin).Host;
-                return host == "localhost" || host == "127.0.0.1" || host == "booking-murex-two.vercel.app";
+                return host == "localhost" || host == "127.0.0.1";
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
