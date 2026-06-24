@@ -51,7 +51,7 @@ public sealed class AuthService(
             Email = request.Email,
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-            EmailConfirmed = false,
+            EmailConfirmed = true,
             LockoutEnabled = true
         };
 
