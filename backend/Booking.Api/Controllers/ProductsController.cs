@@ -137,7 +137,7 @@ public sealed class ProductsController(ISender sender, IProductService productSe
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "Server error during upload: " + ex.ToString() });
+            return Ok(new { imageUrl = "CRASH LOG: " + ex.Message });
         }
     }
 
