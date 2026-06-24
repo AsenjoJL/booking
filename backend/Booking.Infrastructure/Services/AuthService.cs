@@ -66,7 +66,9 @@ public sealed class AuthService(
         // Send verification email (non-blocking — registration still succeeds if email fails)
         try
         {
-            await SendVerificationEmailAsync(user, cancellationToken);
+            using var emailCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            emailCts.CancelAfter(TimeSpan.FromSeconds(5));
+            await SendVerificationEmailAsync(user, emailCts.Token);
         }
         catch (Exception ex)
         {
