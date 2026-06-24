@@ -30,7 +30,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
             ConflictException => (HttpStatusCode.Conflict, exception.Message),
             ConcurrencyException => (HttpStatusCode.Conflict, exception.Message),
             DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "The resource was modified by another request."),
-            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+            _ => (HttpStatusCode.InternalServerError, "CRASH LOG: " + exception.ToString())
         };
 
         Log.ForContext("CorrelationId", context.TraceIdentifier)
