@@ -83,55 +83,62 @@ public sealed class ProductsController(ISender sender, IProductService productSe
         IFormFile file,
         CancellationToken cancellationToken)
     {
-        if (file.Length <= 0)
+        try
         {
-            return BadRequest(new { error = "Choose an image file to upload." });
-        }
-
-        if (file.Length > 10 * 1024 * 1024)
-        {
-            return BadRequest(new { error = "Image must be 10 MB or smaller." });
-        }
-
-        var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif"
-        };
-
-        if (!allowedContentTypes.Contains(file.ContentType))
-        {
-            return BadRequest(new { error = "Only JPG, PNG, WEBP, and GIF images are allowed." });
-        }
-
-        var uploadsRoot = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "products");
-        Directory.CreateDirectory(uploadsRoot);
-
-        var extension = Path.GetExtension(file.FileName);
-        if (string.IsNullOrWhiteSpace(extension))
-        {
-            extension = file.ContentType switch
+            if (file == null || file.Length <= 0)
             {
-                "image/jpeg" => ".jpg",
-                "image/png" => ".png",
-                "image/webp" => ".webp",
-                "image/gif" => ".gif",
-                _ => ".bin"
+                return BadRequest(new { error = "Choose an image file to upload." });
+            }
+
+            if (file.Length > 10 * 1024 * 1024)
+            {
+                return BadRequest(new { error = "Image must be 10 MB or smaller." });
+            }
+
+            var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif"
             };
+
+            if (!allowedContentTypes.Contains(file.ContentType))
+            {
+                return BadRequest(new { error = "Only JPG, PNG, WEBP, and GIF images are allowed." });
+            }
+
+            var uploadsRoot = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "products");
+            Directory.CreateDirectory(uploadsRoot);
+
+            var extension = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = file.ContentType switch
+                {
+                    "image/jpeg" => ".jpg",
+                    "image/png" => ".png",
+                    "image/webp" => ".webp",
+                    "image/gif" => ".gif",
+                    _ => ".bin"
+                };
+            }
+
+            var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+            var filePath = Path.Combine(uploadsRoot, fileName);
+
+            await using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream, cancellationToken);
+            }
+
+            var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/products/{fileName}";
+            return Ok(new { imageUrl });
         }
-
-        var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
-        var filePath = Path.Combine(uploadsRoot, fileName);
-
-        await using (var stream = System.IO.File.Create(filePath))
+        catch (Exception ex)
         {
-            await file.CopyToAsync(stream, cancellationToken);
+            return StatusCode(500, new { error = "Server error during upload: " + ex.ToString() });
         }
-
-        var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/products/{fileName}";
-        return Ok(new { imageUrl });
     }
 
     [HttpPost("bulk-stock")]
