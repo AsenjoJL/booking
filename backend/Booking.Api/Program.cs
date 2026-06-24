@@ -62,11 +62,19 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins(allowedCorsOrigins.Distinct().ToArray())
             .SetIsOriginAllowed(origin => 
             {
+                if (string.IsNullOrWhiteSpace(origin)) return false;
+                
                 var host = new Uri(origin).Host;
-                return host == "localhost" || host == "127.0.0.1";
+                if (host == "localhost" || host == "127.0.0.1") return true;
+
+                var allowedHosts = allowedCorsOrigins
+                    .Where(o => !string.IsNullOrWhiteSpace(o))
+                    .Select(o => new Uri(o).Host)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    
+                return allowedHosts.Contains(host);
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
