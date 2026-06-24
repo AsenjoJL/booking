@@ -48,7 +48,7 @@ var allowedCorsOrigins = new List<string>
 var frontendUrl = builder.Configuration["FrontendUrl"];
 if (!string.IsNullOrWhiteSpace(frontendUrl))
 {
-    allowedCorsOrigins.Add(frontendUrl.TrimEnd('/'));
+    allowedCorsOrigins.Add(frontendUrl.Trim().TrimEnd('/'));
 }
 
 var configuredCorsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -267,6 +267,9 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
     Authorization = [new AdminOrLocalDashboardAuthorizationFilter()],
     DashboardTitle = "Booking Jobs"
 });
+
+app.MapGet("/api/diagnostic", () => new { AllowedOrigins = allowedCorsOrigins });
+
 app.UseCors("Frontend");
 if (!app.Environment.IsDevelopment())
 {
