@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import {
   Boxes,
   CircleCheckBig,
@@ -1428,10 +1429,10 @@ export default function AdminDashboard() {
 
       await createMutation.mutateAsync(payload)
       setProductSuccessMessage(`${values.name.trim()} added successfully.`)
-    } catch (error) {
+    } catch (error: any) {
       let message = 'Unable to save the product right now.'
       if (axios.isAxiosError(error)) {
-        message = (error.response?.data?.error as string) || error.message
+        message = (error.response?.data as { error?: string })?.error || error.message
       } else if (error instanceof Error) {
         message = error.message
       }
