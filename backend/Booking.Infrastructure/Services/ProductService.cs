@@ -710,7 +710,6 @@ public sealed class ProductService(
 
         while (await dbContext.Products.AnyAsync(
                    x => x.Slug == candidate
-                        && !x.IsDeleted
                         && (!excludeProductId.HasValue || x.Id != excludeProductId.Value),
                    cancellationToken))
         {
