@@ -1,6 +1,15 @@
 import type { Order, OrderStatus } from '@/types/order'
 import { api } from './api'
 
+export type OrderNotificationLog = {
+  id: string
+  phoneNumber: string
+  status: string
+  message: string
+  sentAtUtc: string
+  errorMessage?: string | null
+}
+
 export const orderService = {
   async getMyOrders() {
     const { data } = await api.get<Order[]>('/orders')
@@ -65,7 +74,7 @@ export const orderService = {
     return data
   },
   async getNotifications(orderId: string) {
-    const { data } = await api.get(`/orders/${orderId}/notifications`)
+    const { data } = await api.get<OrderNotificationLog[]>(`/orders/${orderId}/notifications`)
     return data
   },
 }

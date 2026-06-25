@@ -45,9 +45,25 @@ public sealed class InventoryServiceTests : IDisposable
         var adminProducts = await service.GetAdminProductsAsync(new ProductListQueryDto(), CancellationToken.None);
 
         Assert.Single(publicProducts.Items);
-        Assert.Equal(2, adminProducts.Items.Count);
+        Assert.Equal(3, adminProducts.Items.Count);
         Assert.DoesNotContain(publicProducts.Items, item => item.Slug == fixture.HiddenSlug);
+        Assert.DoesNotContain(publicProducts.Items, item => item.Slug == "draft-jacket");
         Assert.Contains(adminProducts.Items, item => item.Slug == fixture.HiddenSlug);
+        Assert.Contains(adminProducts.Items, item => item.Slug == "draft-jacket");
+    }
+
+    [Fact]
+    public async Task GetBySlugAsync_DoesNotExposeActiveDraftProduct()
+    {
+        await using var context = new BookingDbContext(_options);
+        await SeedInventoryAsync(context);
+        var service = CreateProductService(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            service.GetBySlugAsync("draft-jacket", CancellationToken.None));
+
+        var adminProduct = await service.GetAdminBySlugAsync("draft-jacket", CancellationToken.None);
+        Assert.Equal("Draft", adminProduct.Status);
     }
 
     [Fact]
@@ -141,7 +157,11 @@ public sealed class InventoryServiceTests : IDisposable
     {
         await using var context = new BookingDbContext(_options);
         var fixture = await SeedInventoryAsync(context);
-        var service = new CategoryService(context);
+        var service = new CategoryService(
+            context,
+            _cache,
+            NullLogger<CategoryService>.Instance,
+            new CacheMetricsCollector());
 
         var exception = await Assert.ThrowsAsync<ConflictException>(() =>
             service.DeleteAsync(fixture.CategoryId, CancellationToken.None));
@@ -194,6 +214,7 @@ public sealed class InventoryServiceTests : IDisposable
             Description = "Visible catalog product",
             Price = 125m,
             StockQuantity = 8,
+            Status = "Active",
             IsActive = true,
             Category = category,
             Images =
@@ -218,8 +239,20 @@ public sealed class InventoryServiceTests : IDisposable
             Category = category
         };
 
+        var draftProduct = new Product
+        {
+            Name = "Draft Jacket",
+            Slug = "draft-jacket",
+            Description = "Unpublished catalog product",
+            Price = 150m,
+            StockQuantity = 6,
+            Status = "Draft",
+            IsActive = true,
+            Category = category
+        };
+
         context.Categories.Add(category);
-        context.Products.AddRange(visibleProduct, hiddenProduct);
+        context.Products.AddRange(visibleProduct, hiddenProduct, draftProduct);
         await context.SaveChangesAsync();
 
         return (category.Id, visibleProduct.Slug, hiddenProduct.Slug);

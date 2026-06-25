@@ -35,17 +35,23 @@ function HeroSceneStaticFallback() {
 
 export function LazyHeroScene() {
   const [shouldLoad, setShouldLoad] = useState(false)
-  const [canUseImmersiveHero, setCanUseImmersiveHero] = useState(false)
+  const [canUseImmersiveHero, setCanUseImmersiveHero] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return true
+    }
+
+    return window
+      .matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)')
+      .matches
+  })
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      setCanUseImmersiveHero(true)
       return
     }
 
     const mediaQuery = window.matchMedia('(min-width: 1024px) and (prefers-reduced-motion: no-preference)')
     const updateEligibility = () => setCanUseImmersiveHero(mediaQuery.matches)
-    updateEligibility()
     mediaQuery.addEventListener('change', updateEligibility)
 
     return () => {

@@ -2,6 +2,7 @@
 node_modules/
 dist/
 build/
+out-local-check/
 .env
 .env.*
 !.env.example

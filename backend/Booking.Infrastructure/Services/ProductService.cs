@@ -69,7 +69,9 @@ public sealed class ProductService(
 
         if (!includeInactive)
         {
-            products = products.Where(x => x.IsActive);
+            products = products.Where(x =>
+                x.IsActive &&
+                (x.Status == "Active" || x.Status == "OutOfStock"));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -241,7 +243,11 @@ public sealed class ProductService(
         logger.LogDebug("Product detail cache miss for key {CacheKey}.", cacheKey);
 
         var product = await LoadProductQuery()
-            .FirstOrDefaultAsync(x => x.Slug == slug && (includeInactive || x.IsActive), cancellationToken)
+            .FirstOrDefaultAsync(
+                x => x.Slug == slug &&
+                     (includeInactive ||
+                      (x.IsActive && (x.Status == "Active" || x.Status == "OutOfStock"))),
+                cancellationToken)
             ?? throw new NotFoundException("Product not found.");
 
         var dto = product.ToDetailDto();

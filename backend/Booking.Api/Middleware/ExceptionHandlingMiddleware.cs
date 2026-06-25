@@ -6,7 +6,9 @@ using Serilog;
 
 namespace Booking.Api.Middleware;
 
-public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
+public sealed class ExceptionHandlingMiddleware(
+    RequestDelegate next,
+    IWebHostEnvironment environment)
 {
     public async Task Invoke(HttpContext context)
     {
@@ -16,11 +18,14 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
         }
         catch (Exception exception)
         {
-            await HandleExceptionAsync(context, exception);
+            await HandleExceptionAsync(context, exception, environment.IsDevelopment());
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(
+        HttpContext context,
+        Exception exception,
+        bool includeExceptionDetails)
     {
         var (statusCode, message) = exception switch
         {
@@ -30,7 +35,11 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next)
             ConflictException => (HttpStatusCode.Conflict, exception.Message),
             ConcurrencyException => (HttpStatusCode.Conflict, exception.Message),
             DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "The resource was modified by another request."),
-            _ => (HttpStatusCode.InternalServerError, "CRASH LOG: " + exception.ToString())
+            _ => (
+                HttpStatusCode.InternalServerError,
+                includeExceptionDetails
+                    ? exception.ToString()
+                    : "An unexpected error occurred. Use the correlation ID when contacting support.")
         };
 
         Log.ForContext("CorrelationId", context.TraceIdentifier)

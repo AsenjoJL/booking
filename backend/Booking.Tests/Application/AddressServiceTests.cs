@@ -3,6 +3,9 @@ using Booking.Infrastructure.Data;
 using Booking.Infrastructure.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Booking.Tests.Application;
 
@@ -10,6 +13,7 @@ public sealed class AddressServiceTests : IDisposable
 {
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<BookingDbContext> _options;
+    private readonly IDistributedCache _cache;
 
     public AddressServiceTests()
     {
@@ -18,6 +22,9 @@ public sealed class AddressServiceTests : IDisposable
         _options = new DbContextOptionsBuilder<BookingDbContext>()
             .UseSqlite(_connection)
             .Options;
+        var services = new ServiceCollection();
+        services.AddDistributedMemoryCache();
+        _cache = services.BuildServiceProvider().GetRequiredService<IDistributedCache>();
 
         using var context = new BookingDbContext(_options);
         context.Database.EnsureCreated();
@@ -28,7 +35,7 @@ public sealed class AddressServiceTests : IDisposable
     {
         await using var context = new BookingDbContext(_options);
         var userId = await SeedUserAsync(context);
-        var service = new AddressService(context);
+        var service = CreateAddressService(context);
 
         var first = await service.CreateAsync(
             userId,
@@ -67,7 +74,7 @@ public sealed class AddressServiceTests : IDisposable
 
         var addresses = await service.GetMyAddressesAsync(userId, CancellationToken.None);
         Assert.Equal(2, addresses.Count);
-        Assert.Single(addresses.Where(x => x.IsDefaultShipping));
+        Assert.Single(addresses, x => x.IsDefaultShipping);
         Assert.Equal(second.Id, addresses.Single(x => x.IsDefaultShipping).Id);
     }
 
@@ -76,7 +83,7 @@ public sealed class AddressServiceTests : IDisposable
     {
         await using var context = new BookingDbContext(_options);
         var userId = await SeedUserAsync(context);
-        var service = new AddressService(context);
+        var service = CreateAddressService(context);
 
         var first = await service.CreateAsync(
             userId,
@@ -122,6 +129,13 @@ public sealed class AddressServiceTests : IDisposable
     {
         _connection.Dispose();
     }
+
+    private AddressService CreateAddressService(BookingDbContext context) =>
+        new(
+            context,
+            _cache,
+            NullLogger<AddressService>.Instance,
+            new CacheMetricsCollector());
 
     private static async Task<Guid> SeedUserAsync(BookingDbContext context)
     {

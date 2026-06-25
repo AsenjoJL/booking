@@ -9,18 +9,22 @@ type VerifyState = 'loading' | 'success' | 'error' | 'resent'
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
-  const [state, setState] = useState<VerifyState>('loading')
-  const [errorMessage, setErrorMessage] = useState('')
+  const userId = searchParams.get('userId')
+  const token = searchParams.get('token')
+  const hasValidVerificationParams = Boolean(userId && token)
+  const [state, setState] = useState<VerifyState>(
+    hasValidVerificationParams ? 'loading' : 'error',
+  )
+  const [errorMessage, setErrorMessage] = useState(
+    hasValidVerificationParams
+      ? ''
+      : 'Invalid verification link. Please request a new one.',
+  )
   const [resendEmail, setResendEmail] = useState('')
   const [isResending, setIsResending] = useState(false)
 
-  const userId = searchParams.get('userId')
-  const token = searchParams.get('token')
-
   useEffect(() => {
     if (!userId || !token) {
-      setState('error')
-      setErrorMessage('Invalid verification link. Please request a new one.')
       return
     }
 

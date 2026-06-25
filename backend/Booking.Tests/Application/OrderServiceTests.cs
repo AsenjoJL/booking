@@ -129,6 +129,8 @@ public sealed class OrderServiceTests : IDisposable
             new ThrowingOrderJobScheduler(),
             new NoOpInventoryLockService(),
             inventoryLedger,
+            new NoOpEmailService(),
+            new NoOpSmsService(),
             NullLogger<OrderService>.Instance,
             new CacheMetricsCollector());
 
@@ -163,6 +165,8 @@ public sealed class OrderServiceTests : IDisposable
             new NoOpOrderJobScheduler(),
             new NoOpInventoryLockService(),
             inventoryLedger,
+            new NoOpEmailService(),
+            new NoOpSmsService(),
             NullLogger<OrderService>.Instance,
             new CacheMetricsCollector());
     }
@@ -249,5 +253,47 @@ public sealed class OrderServiceTests : IDisposable
         {
             throw new InvalidOperationException("Scheduler unavailable");
         }
+    }
+
+    private sealed class NoOpEmailService : IEmailService
+    {
+        public Task SendEmailVerificationAsync(
+            string toEmail,
+            string toName,
+            string verificationLink,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task SendOrderConfirmationAsync(
+            string toEmail,
+            string toName,
+            Guid orderId,
+            decimal total,
+            string status,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task SendOrderStatusUpdateAsync(
+            string toEmail,
+            string toName,
+            Guid orderId,
+            string newStatus,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private sealed class NoOpSmsService : ISmsService
+    {
+        public Task SendOrderConfirmationSmsAsync(
+            string phoneNumber,
+            string name,
+            Guid orderId,
+            decimal total,
+            string status,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task SendOrderStatusUpdateSmsAsync(
+            string phoneNumber,
+            string name,
+            Guid orderId,
+            string status,
+            CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

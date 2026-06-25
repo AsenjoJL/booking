@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import {
@@ -33,8 +33,9 @@ import { Input } from '@/components/ui/input'
 import { categoryService } from '@/services/categoryService'
 import { orderService } from '@/services/orderService'
 import { productService } from '@/services/productService'
-import type { InventorySnapshot } from '@/services/productService'
+import type { InventorySnapshot, ProductCatalogPage } from '@/services/productService'
 import type { Order, OrderStatus } from '@/types/order'
+import type { Product } from '@/types/product'
 import { formatCurrency } from '@/utils/format'
 
 const statusVariant: Record<OrderStatus, 'default' | 'secondary' | 'outline' | 'muted'> = {
@@ -111,6 +112,36 @@ type UploadedProductImage = {
   previewUrl: string
   imageUrl?: string
   isExisting?: boolean
+}
+
+type CachedProductCollection = Product[] | ProductCatalogPage | undefined
+
+function removeProductFromCachedCollection(
+  current: CachedProductCollection,
+  productId: string,
+): CachedProductCollection {
+  if (Array.isArray(current)) {
+    return current.filter((product) => product.id !== productId)
+  }
+
+  if (!current) {
+    return current
+  }
+
+  const productWasPresent = current.items.some((product) => product.id === productId)
+  if (!productWasPresent) {
+    return current
+  }
+
+  const items = current.items.filter((product) => product.id !== productId)
+  const totalCount = Math.max(0, current.totalCount - 1)
+
+  return {
+    ...current,
+    items,
+    totalCount,
+    totalPages: Math.max(1, Math.ceil(totalCount / Math.max(current.pageSize, 1))),
+  }
 }
 
 const restockBrandOptions = ['JLA Everyday', 'Zara', 'H&M', 'Uniqlo', 'Mango', 'COS', '& Other Stories', 'Massimo Dutti', 'Reserved', 'Pull&Bear']
@@ -414,7 +445,7 @@ function AdminSmsHistoryModal({
             <p className="text-sm text-muted-foreground text-center py-4">No SMS logs found for this order.</p>
           ) : (
             <div className="space-y-4">
-              {logs.map((log: any) => (
+              {logs.map((log) => (
                 <div key={log.id} className="rounded-xl border border-[#e5ebf3] bg-[#fbfdff] p-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-semibold text-[#334155]">{log.phoneNumber}</p>
@@ -628,7 +659,7 @@ export default function AdminDashboard() {
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -645,8 +676,8 @@ export default function AdminDashboard() {
     defaultValues: defaultCategoryValues,
   })
 
-  const watchedProductName = watch('name')
-  const watchedProductSize = watch('size')
+  const watchedProductName = useWatch({ control, name: 'name' })
+  const watchedProductSize = useWatch({ control, name: 'size' })
 
   const generatedProductSku = useMemo(
     () => {
@@ -780,16 +811,14 @@ export default function AdminDashboard() {
   }, [
     isRestockModalOpen,
     restockDisplayProduct,
-    restockProductDetail?.brand,
-    restockProductDetail?.categoryId,
-    restockProductDetail?.price,
+    restockProductDetail,
     selectedInventoryProduct?.brand,
     selectedInventoryProduct?.lowStockThreshold,
     selectedInventoryProduct?.name,
     selectedInventoryProduct?.price,
     selectedInventoryProduct?.sku,
     selectedInventoryProduct?.slug,
-    selectedInventorySnapshot?.isLowStock,
+    selectedInventorySnapshot,
   ])
 
   const createMutation = useMutation({
@@ -835,65 +864,46 @@ export default function AdminDashboard() {
         queryClient.cancelQueries({ queryKey: ['products'] }),
       ])
 
-      const previousAdminProducts = queryClient.getQueryData(['admin-products'])
-      const previousAdminProductPages = queryClient.getQueriesData({ queryKey: ['admin-products-page'] })
-      const previousAdminCatalogPages = queryClient.getQueriesData({ queryKey: ['admin-catalog-page'] })
-      const previousProducts = queryClient.getQueriesData({ queryKey: ['products'] })
+      const previousAdminProducts = queryClient.getQueryData<Product[]>(['admin-products'])
+      const previousAdminProductPages = queryClient.getQueriesData<ProductCatalogPage>({
+        queryKey: ['admin-products-page'],
+      })
+      const previousAdminCatalogPages = queryClient.getQueriesData<ProductCatalogPage>({
+        queryKey: ['admin-catalog-page'],
+      })
+      const previousProducts = queryClient.getQueriesData<CachedProductCollection>({
+        queryKey: ['products'],
+      })
 
-      queryClient.setQueryData(['admin-products'], (current: any[] | undefined) =>
+      queryClient.setQueryData<Product[] | undefined>(['admin-products'], (current) =>
         current?.filter((product) => product.id !== deletedProductId) ?? current,
       )
 
       for (const [queryKey] of previousAdminProductPages) {
-        queryClient.setQueryData(queryKey, (current: any) => {
-          if (!current?.items) {
-            return current
-          }
-
-          const filteredItems = current.items.filter((product: any) => product.id !== deletedProductId)
-          return {
-            ...current,
-            items: filteredItems,
-            totalCount: Math.max(0, (current.totalCount ?? filteredItems.length) - 1),
-            totalPages: Math.max(1, Math.ceil(Math.max(0, ((current.totalCount ?? filteredItems.length) - 1)) / (current.pageSize || 25))),
-          }
-        })
+        queryClient.setQueryData<ProductCatalogPage | undefined>(
+          queryKey,
+          (current) =>
+            removeProductFromCachedCollection(current, deletedProductId) as
+              | ProductCatalogPage
+              | undefined,
+        )
       }
 
       for (const [queryKey] of previousAdminCatalogPages) {
-        queryClient.setQueryData(queryKey, (current: any) => {
-          if (!current?.items) {
-            return current
-          }
-
-          const filteredItems = current.items.filter((product: any) => product.id !== deletedProductId)
-          return {
-            ...current,
-            items: filteredItems,
-            totalCount: Math.max(0, (current.totalCount ?? filteredItems.length) - 1),
-            totalPages: Math.max(1, Math.ceil(Math.max(0, ((current.totalCount ?? filteredItems.length) - 1)) / (current.pageSize || 25))),
-          }
-        })
+        queryClient.setQueryData<ProductCatalogPage | undefined>(
+          queryKey,
+          (current) =>
+            removeProductFromCachedCollection(current, deletedProductId) as
+              | ProductCatalogPage
+              | undefined,
+        )
       }
 
       for (const [queryKey] of previousProducts) {
-        queryClient.setQueryData(queryKey, (current: any) => {
-          if (Array.isArray(current)) {
-            return current.filter((product) => product.id !== deletedProductId)
-          }
-
-          if (current?.items) {
-            const filteredItems = current.items.filter((product: any) => product.id !== deletedProductId)
-            return {
-              ...current,
-              items: filteredItems,
-              totalCount: Math.max(0, (current.totalCount ?? filteredItems.length) - 1),
-              totalPages: Math.max(1, Math.ceil(Math.max(0, ((current.totalCount ?? filteredItems.length) - 1)) / (current.pageSize || 25))),
-            }
-          }
-
-          return current
-        })
+        queryClient.setQueryData<CachedProductCollection>(
+          queryKey,
+          (current) => removeProductFromCachedCollection(current, deletedProductId),
+        )
       }
 
       return {
@@ -1215,8 +1225,14 @@ export default function AdminDashboard() {
     }
   }, [categories.length, orders, products])
 
-  const inventoryProducts = inventoryCatalog?.items ?? []
-  const catalogProducts = catalogCatalog?.items ?? []
+  const inventoryProducts = useMemo(
+    () => inventoryCatalog?.items ?? [],
+    [inventoryCatalog?.items],
+  )
+  const catalogProducts = useMemo(
+    () => catalogCatalog?.items ?? [],
+    [catalogCatalog?.items],
+  )
   const catalogBrandOptions = productBrandOptions
   const totalCatalogStock = useMemo(
     () => catalogProducts.reduce((sum, product) => sum + (product.quantityOnHand ?? product.stock), 0),
@@ -1427,7 +1443,7 @@ export default function AdminDashboard() {
 
       await createMutation.mutateAsync(payload)
       setProductSuccessMessage(`${values.name.trim()} added successfully.`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       let message = 'Unable to save the product right now.'
       if (axios.isAxiosError(error)) {
         message = (error.response?.data as { error?: string })?.error || error.message

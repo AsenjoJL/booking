@@ -24,6 +24,8 @@ var builder = WebApplication.CreateBuilder(args);
 var dataProtectionDirectory = Path.Combine(builder.Environment.ContentRootPath, ".keys");
 Directory.CreateDirectory(dataProtectionDirectory);
 
+ValidateProductionConfiguration(builder.Configuration, builder.Environment);
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -37,13 +39,17 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionDirectory))
     .SetApplicationName("Booking.Api");
 builder.Services.AddDistributedMemoryCache();
-var allowedCorsOrigins = new List<string>
+var allowedCorsOrigins = new List<string>();
+if (builder.Environment.IsDevelopment())
 {
-    "http://127.0.0.1:5173",
-    "http://localhost:5173",
-    "https://127.0.0.1:5173",
-    "https://localhost:5173"
-};
+    allowedCorsOrigins.AddRange(
+    [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "https://127.0.0.1:5173",
+        "https://localhost:5173"
+    ]);
+}
 
 var frontendUrl = builder.Configuration["FrontendUrl"];
 if (!string.IsNullOrWhiteSpace(frontendUrl))
@@ -57,24 +63,24 @@ if (configuredCorsOrigins is { Length: > 0 })
     allowedCorsOrigins.AddRange(configuredCorsOrigins);
 }
 
+var normalizedAllowedCorsOrigins = allowedCorsOrigins
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin.Trim().TrimEnd('/'))
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .SetIsOriginAllowed(origin => 
+            .SetIsOriginAllowed(origin =>
             {
-                if (string.IsNullOrWhiteSpace(origin)) return false;
-                
-                var host = new Uri(origin).Host;
-                if (host == "localhost" || host == "127.0.0.1") return true;
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return false;
+                }
 
-                var allowedHosts = allowedCorsOrigins
-                    .Where(o => !string.IsNullOrWhiteSpace(o))
-                    .Select(o => new Uri(o).Host)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    
-                return allowedHosts.Contains(host);
+                return normalizedAllowedCorsOrigins.Contains(origin.Trim().TrimEnd('/'));
             })
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -255,6 +261,7 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseSerilogRequestLogging(options =>
 {
     options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
@@ -279,14 +286,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHangfireDashboard("/jobs", new DashboardOptions
-{
-    Authorization = [new AdminOrLocalDashboardAuthorizationFilter()],
-    DashboardTitle = "Booking Jobs"
-});
-
-app.MapGet("/api/diagnostic", () => new { AllowedOrigins = allowedCorsOrigins });
-
 app.UseCors("Frontend");
 if (!app.Environment.IsDevelopment())
 {
@@ -296,6 +295,31 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
+
+var dashboardEnabled =
+    app.Environment.IsDevelopment() ||
+    builder.Configuration.GetValue<bool>("Hangfire:DashboardEnabled");
+
+if (dashboardEnabled)
+{
+    app.UseHangfireDashboard("/jobs", new DashboardOptions
+    {
+        Authorization = [new AdminOrLocalDashboardAuthorizationFilter(app.Environment)],
+        DashboardTitle = "Booking Jobs"
+    });
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/api/diagnostic", () => new { AllowedOrigins = normalizedAllowedCorsOrigins });
+}
+
+app.MapGet("/api/health", () => Results.Ok(new
+{
+    status = "healthy",
+    timestampUtc = DateTime.UtcNow
+}));
+
 app.MapControllers();
 
 await using (var scope = app.Services.CreateAsyncScope())
@@ -309,3 +333,54 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 app.Run();
+
+static void ValidateProductionConfiguration(
+    IConfiguration configuration,
+    IWebHostEnvironment environment)
+{
+    if (!environment.IsProduction())
+    {
+        return;
+    }
+
+    var errors = new List<string>();
+    var connectionString = configuration.GetConnectionString("DefaultConnection");
+    var jwtKey = configuration["Jwt:Key"];
+    var frontendUrl = configuration["FrontendUrl"];
+    var supabaseUrl = configuration["SupabaseStorage:Url"];
+    var supabaseServiceRoleKey = configuration["SupabaseStorage:ServiceRoleKey"];
+
+    if (string.IsNullOrWhiteSpace(connectionString) ||
+        connectionString.Contains("localhost", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.Contains("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+    {
+        errors.Add("ConnectionStrings__DefaultConnection must contain the production database connection.");
+    }
+
+    if (string.IsNullOrWhiteSpace(jwtKey) ||
+        jwtKey.Length < 32 ||
+        jwtKey.Contains("development", StringComparison.OrdinalIgnoreCase) ||
+        jwtKey.Contains("replace-me", StringComparison.OrdinalIgnoreCase))
+    {
+        errors.Add("Jwt__Key must be a unique production secret of at least 32 characters.");
+    }
+
+    if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var frontendUri) ||
+        frontendUri.Scheme != Uri.UriSchemeHttps)
+    {
+        errors.Add("FrontendUrl must be the HTTPS URL of the deployed frontend.");
+    }
+
+    if (!Uri.TryCreate(supabaseUrl, UriKind.Absolute, out var storageUri) ||
+        storageUri.Scheme != Uri.UriSchemeHttps ||
+        string.IsNullOrWhiteSpace(supabaseServiceRoleKey))
+    {
+        errors.Add("SupabaseStorage__Url and SupabaseStorage__ServiceRoleKey are required in production.");
+    }
+
+    if (errors.Count > 0)
+    {
+        throw new InvalidOperationException(
+            $"Production configuration is invalid:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
+    }
+}

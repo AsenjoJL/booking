@@ -6,6 +6,13 @@ namespace Booking.Api.Hangfire;
 
 public sealed class AdminOrLocalDashboardAuthorizationFilter : IDashboardAuthorizationFilter
 {
+    private readonly IWebHostEnvironment _environment;
+
+    public AdminOrLocalDashboardAuthorizationFilter(IWebHostEnvironment environment)
+    {
+        _environment = environment;
+    }
+
     public bool Authorize([NotNull] DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
@@ -14,6 +21,11 @@ public sealed class AdminOrLocalDashboardAuthorizationFilter : IDashboardAuthori
             httpContext.User.IsInRole("Admin"))
         {
             return true;
+        }
+
+        if (!_environment.IsDevelopment())
+        {
+            return false;
         }
 
         var remoteIp = httpContext.Connection.RemoteIpAddress;

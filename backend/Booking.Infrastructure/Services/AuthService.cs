@@ -332,7 +332,10 @@ public sealed class AuthService(
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var tokenBytes = Encoding.UTF8.GetBytes(token);
         var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
-        var frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        var frontendBaseUrl =
+            configuration["Frontend:BaseUrl"] ??
+            configuration["FrontendUrl"] ??
+            "http://localhost:5173";
         var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
 
         await emailService.SendEmailVerificationAsync(

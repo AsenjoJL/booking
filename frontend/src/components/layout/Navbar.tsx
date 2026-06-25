@@ -170,11 +170,6 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    setIsAccountMenuOpen(false)
-    setIsMobileMenuOpen(false)
-  }, [location.pathname])
-
-  useEffect(() => {
     const handlePointerDown = (e: MouseEvent) => {
       if (!accountMenuRef.current?.contains(e.target as Node)) {
         setIsAccountMenuOpen(false)
@@ -335,6 +330,7 @@ export default function Navbar() {
                             >
                               <Link
                                 to={item.to}
+                                onClick={() => setIsAccountMenuOpen(false)}
                                 className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[13px] font-medium text-[#0F0E0D] transition-colors hover:bg-[#F4EFE8] hover:text-[#C4622D]"
                               >
                                 <span className="text-[#8B7355]">{item.icon}</span>

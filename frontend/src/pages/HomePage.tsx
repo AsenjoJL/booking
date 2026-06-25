@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Heart,
   Mail,
-  Package,
   RotateCcw,
   ShieldCheck,
   ShoppingBag,
@@ -21,8 +20,6 @@ import collection4Image from '@/assets/collection4.png'
 import heroImage from '@/assets/clothing.avif'
 import ladyModelImage from '@/assets/ladymodel.avif'
 import fashion3Image from '@/assets/fashion3.png'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { getProductImageClass, getProductImageSurfaceClass } from '@/lib/productImage'
 import { productService } from '@/services/productService'

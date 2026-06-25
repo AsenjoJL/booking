@@ -26,8 +26,16 @@ To ensure the backend runs correctly in production, the following Environment Va
 | `ConnectionStrings__DefaultConnection` | `Host=aws-0-....pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.xxx;Password=YOUR_PASSWORD` | Your Supabase Session-Mode Connection String |
 | `FrontendUrl` | `https://booking-murex-two.vercel.app` | The exact URL of your live Vercel frontend (No trailing slash). This dynamically configures CORS to allow your frontend to communicate with the API. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` | Tells ASP.NET to run in production mode |
+| `Jwt__Key` | A unique random secret of at least 32 characters | Signs production access and refresh tokens. Never reuse the development value. |
+| `SupabaseStorage__Url` | `https://YOUR_PROJECT.supabase.co` | Supabase project URL used for product image uploads. |
+| `SupabaseStorage__ServiceRoleKey` | Your Supabase service-role key | Server-only storage credential. Never expose this in Vercel. |
+| `Hangfire__DashboardEnabled` | `false` | Keep the jobs dashboard disabled publicly. Enable only behind a trusted private access layer. |
 
 *Note: Whenever you push code to GitHub, Render will automatically rebuild and deploy the API.*
+
+The production API validates these critical values during startup. A deployment with missing, local, or placeholder credentials will stop immediately instead of running with unsafe defaults.
+
+Use `/api/health` as the Render health-check path. The diagnostic CORS endpoint and Hangfire dashboard are unavailable in production by default.
 
 ---
 
@@ -48,3 +56,7 @@ Vercel automatically detects Vite, but the standard build commands are used:
 * **Build Command**: `npm run build`
 
 *Note: We have configured `tsconfig.app.json` to ignore strict type deprecation warnings so that Vercel builds do not fail unexpectedly on unused variables.*
+
+## Secret Rotation
+
+If a credential was ever committed to source control, removing it from the current file is not sufficient. Rotate the affected SMTP password, SMS token, database password, JWT key, and Supabase service-role key in their provider dashboards, then update the Render environment variables.
