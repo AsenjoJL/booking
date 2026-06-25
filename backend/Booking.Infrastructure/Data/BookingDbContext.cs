@@ -1,11 +1,14 @@
 using Booking.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Infrastructure.Data;
 
-public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public sealed class BookingDbContext :
+    IdentityDbContext<User, IdentityRole<Guid>, Guid>,
+    IDataProtectionKeyContext
 {
     public BookingDbContext(DbContextOptions<BookingDbContext> options) : base(options)
     {
@@ -25,6 +28,7 @@ public sealed class BookingDbContext : IdentityDbContext<User, IdentityRole<Guid
     public DbSet<Coupon> Coupons => Set<Coupon>();
     public DbSet<OrderNotificationLog> OrderNotificationLogs => Set<OrderNotificationLog>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

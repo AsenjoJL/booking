@@ -90,6 +90,7 @@ public static class DatabaseSeeder
                     Description = "Relaxed-fit heavyweight cotton tee with dropped shoulders and ribbed crew neck.",
                     Price = 680m,
                     StockQuantity = 45,
+                    Status = "Active",
                     Category = tops
                 },
                 new Product
@@ -99,6 +100,7 @@ public static class DatabaseSeeder
                     Description = "Stretch cotton chinos with a tapered leg and clean front for everyday versatility.",
                     Price = 1280m,
                     StockQuantity = 32,
+                    Status = "Active",
                     Category = bottoms
                 },
                 new Product
@@ -108,6 +110,7 @@ public static class DatabaseSeeder
                     Description = "Elegant wrap silhouette in fluid fabric with adjustable waist tie and midi length.",
                     Price = 1950m,
                     StockQuantity = 18,
+                    Status = "Active",
                     Category = dresses
                 },
                 new Product
@@ -117,6 +120,7 @@ public static class DatabaseSeeder
                     Description = "Structured single-breasted overcoat in a warm wool blend with notch lapels.",
                     Price = 3450m,
                     StockQuantity = 12,
+                    Status = "Active",
                     Category = outerwear
                 });
 

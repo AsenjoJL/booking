@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { LoaderCircle } from 'lucide-react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from '@/components/layout/AdminLayout'
 import Layout from '@/components/layout/Layout'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import { useAuthStore } from '@/store/authStore'
 
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AccountPage = lazy(() => import('@/pages/AccountPage'))
@@ -33,6 +34,12 @@ function RouteFallback() {
 }
 
 function App() {
+  const initializeSession = useAuthStore((state) => state.initializeSession)
+
+  useEffect(() => {
+    void initializeSession()
+  }, [initializeSession])
+
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>

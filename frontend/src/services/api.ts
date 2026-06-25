@@ -1,18 +1,26 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
 
-// Use the environment variable if defined, otherwise use the proxy path in development
-export const apiBaseUrl = import.meta.env.VITE_API_URL || '/api'
+// Production always uses the same-origin Vercel proxy so secure refresh cookies
+// cannot be broken by an outdated absolute API environment variable.
+export const apiBaseUrl = import.meta.env.PROD
+  ? '/api'
+  : import.meta.env.VITE_API_URL || '/api'
 
 export const rawApi = axios.create({
   baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
+
+rawApi.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+api.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token

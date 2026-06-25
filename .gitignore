@@ -3,6 +3,8 @@ node_modules/
 dist/
 build/
 out-local-check/
+.tmp/
+.keys/
 .env
 .env.*
 !.env.example

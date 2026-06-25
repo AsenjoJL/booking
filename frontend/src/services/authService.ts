@@ -1,4 +1,4 @@
-import type { AuthResponse, AuthUser } from '@/types/auth'
+import type { AuthResponse, AuthUser, RegistrationResponse } from '@/types/auth'
 import { api, rawApi } from './api'
 
 export const authService = {
@@ -12,11 +12,11 @@ export const authService = {
     email: string
     password: string
   }) {
-    const { data } = await rawApi.post<AuthResponse>('/auth/register', payload)
+    const { data } = await rawApi.post<RegistrationResponse>('/auth/register', payload)
     return data
   },
-  async refresh(refreshToken: string) {
-    const { data } = await rawApi.post<AuthResponse>('/auth/refresh', { refreshToken })
+  async refresh() {
+    const { data } = await rawApi.post<AuthResponse>('/auth/refresh')
     return data
   },
   async me() {
@@ -27,7 +27,7 @@ export const authService = {
     const { data } = await api.put<AuthUser>('/auth/me', payload)
     return data
   },
-  async logout(refreshToken: string) {
-    await api.post('/auth/logout', { refreshToken })
+  async logout() {
+    await rawApi.post('/auth/logout')
   },
 }

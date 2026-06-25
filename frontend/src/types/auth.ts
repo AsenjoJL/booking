@@ -11,7 +11,10 @@ export type AuthUser = {
 export type AuthResponse = {
   token: string
   accessTokenExpiresAtUtc: string
-  refreshToken: string
-  refreshTokenExpiresAtUtc: string
   user: AuthUser
+}
+
+export type RegistrationResponse = {
+  email: string
+  message: string
 }

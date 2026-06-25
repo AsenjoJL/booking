@@ -14,6 +14,7 @@ using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -21,8 +22,6 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-var dataProtectionDirectory = Path.Combine(builder.Environment.ContentRootPath, ".keys");
-Directory.CreateDirectory(dataProtectionDirectory);
 
 ValidateProductionConfiguration(builder.Configuration, builder.Environment);
 
@@ -35,8 +34,17 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionDirectory))
+    .PersistKeysToDbContext<BookingDbContext>()
     .SetApplicationName("Booking.Api");
 builder.Services.AddDistributedMemoryCache();
 var allowedCorsOrigins = new List<string>();
@@ -261,6 +269,7 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseForwardedHeaders();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseSerilogRequestLogging(options =>
 {
@@ -314,16 +323,35 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/api/diagnostic", () => new { AllowedOrigins = normalizedAllowedCorsOrigins });
 }
 
-app.MapGet("/api/health", () => Results.Ok(new
+app.MapGet("/api/health/live", () => Results.Ok(new
 {
     status = "healthy",
     timestampUtc = DateTime.UtcNow
 }));
 
+app.MapGet(
+    "/api/health",
+    async (BookingDbContext dbContext, CancellationToken cancellationToken) =>
+    {
+        var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+        return canConnect
+            ? Results.Ok(new { status = "ready", timestampUtc = DateTime.UtcNow })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    });
+
 app.MapControllers();
 
-await using (var scope = app.Services.CreateAsyncScope())
+if (args.Contains("--migrate", StringComparer.OrdinalIgnoreCase))
 {
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+    await dbContext.Database.MigrateAsync();
+    return;
+}
+
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
@@ -349,6 +377,9 @@ static void ValidateProductionConfiguration(
     var frontendUrl = configuration["FrontendUrl"];
     var supabaseUrl = configuration["SupabaseStorage:Url"];
     var supabaseServiceRoleKey = configuration["SupabaseStorage:ServiceRoleKey"];
+    var smtpUsername = configuration["Smtp:Username"];
+    var smtpPassword = configuration["Smtp:Password"];
+    var smtpFromEmail = configuration["Smtp:FromEmail"];
 
     if (string.IsNullOrWhiteSpace(connectionString) ||
         connectionString.Contains("localhost", StringComparison.OrdinalIgnoreCase) ||
@@ -378,9 +409,24 @@ static void ValidateProductionConfiguration(
         errors.Add("SupabaseStorage__Url and SupabaseStorage__ServiceRoleKey are required in production.");
     }
 
+    if (string.IsNullOrWhiteSpace(smtpUsername) ||
+        string.IsNullOrWhiteSpace(smtpPassword) ||
+        string.IsNullOrWhiteSpace(smtpFromEmail) ||
+        IsPlaceholder(smtpUsername) ||
+        IsPlaceholder(smtpPassword) ||
+        IsPlaceholder(smtpFromEmail))
+    {
+        errors.Add("Smtp__Username, Smtp__Password, and Smtp__FromEmail are required for email verification.");
+    }
+
     if (errors.Count > 0)
     {
         throw new InvalidOperationException(
             $"Production configuration is invalid:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
     }
+
+    static bool IsPlaceholder(string value) =>
+        value.Contains("YOUR_", StringComparison.OrdinalIgnoreCase) ||
+        value.Contains("REPLACE", StringComparison.OrdinalIgnoreCase) ||
+        value.Contains("EXAMPLE", StringComparison.OrdinalIgnoreCase);
 }

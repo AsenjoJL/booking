@@ -35,7 +35,9 @@ public sealed class AuthService(
         AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
     };
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken)
+    public async Task<RegistrationResponseDto> RegisterAsync(
+        RegisterRequestDto request,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -51,7 +53,7 @@ public sealed class AuthService(
             Email = request.Email,
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-            EmailConfirmed = true,
+            EmailConfirmed = false,
             LockoutEnabled = true
         };
 
@@ -63,7 +65,8 @@ public sealed class AuthService(
 
         await userManager.AddToRoleAsync(user, "Customer");
 
-        // Send verification email (non-blocking — registration still succeeds if email fails)
+        // Registration remains valid if the provider is temporarily unavailable.
+        // The user can request another link from the verification screen.
         try
         {
             using var emailCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -75,7 +78,11 @@ public sealed class AuthService(
             logger.LogWarning(ex, "Verification email failed to send for user {UserId} during registration.", user.Id);
         }
 
-        return await IssueSessionAsync(user, familyId: null, cancellationToken);
+        return new RegistrationResponseDto
+        {
+            Email = user.Email ?? request.Email,
+            Message = "Account created. Check your email to verify the account before signing in."
+        };
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request, CancellationToken cancellationToken)
@@ -139,7 +146,6 @@ public sealed class AuthService(
     }
 
     public async Task RevokeRefreshTokenAsync(
-        Guid userId,
         RevokeRefreshTokenRequestDto request,
         CancellationToken cancellationToken)
     {
@@ -152,10 +158,9 @@ public sealed class AuthService(
 
         var tokenHash = ComputeTokenHash(request.RefreshToken);
         var refreshToken = await dbContext.RefreshTokens
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.TokenHash == tokenHash, cancellationToken)
-            ?? throw new NotFoundException("Refresh token not found.");
+            .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
 
-        if (refreshToken.RevokedAtUtc is null)
+        if (refreshToken is not null && refreshToken.RevokedAtUtc is null)
         {
             refreshToken.RevokedAtUtc = DateTime.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -333,8 +338,8 @@ public sealed class AuthService(
         var tokenBytes = Encoding.UTF8.GetBytes(token);
         var encodedToken = WebEncoders.Base64UrlEncode(tokenBytes);
         var frontendBaseUrl =
-            configuration["Frontend:BaseUrl"] ??
             configuration["FrontendUrl"] ??
+            configuration["Frontend:BaseUrl"] ??
             "http://localhost:5173";
         var verificationLink = $"{frontendBaseUrl}/verify-email?userId={user.Id}&token={encodedToken}";
 

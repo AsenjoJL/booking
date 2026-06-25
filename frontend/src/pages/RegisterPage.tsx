@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { UserPlus } from 'lucide-react'
+import { MailCheck, UserPlus } from 'lucide-react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,8 +13,13 @@ const registerSchema = z
   .object({
     name: z.string().min(2, 'Name is required'),
     email: z.string().email('Enter a valid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Confirm your password'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must include an uppercase letter')
+      .regex(/[a-z]/, 'Password must include a lowercase letter')
+      .regex(/[0-9]/, 'Password must include a number'),
+    confirmPassword: z.string().min(8, 'Confirm your password'),
   })
   .refine((values) => values.password === values.confirmPassword, {
     message: 'Passwords must match',
@@ -25,7 +31,7 @@ type RegisterValues = z.infer<typeof registerSchema>
 export default function RegisterPage() {
   const registerAccount = useAuthStore((state) => state.register)
   const isLoading = useAuthStore((state) => state.isLoading)
-  const navigate = useNavigate()
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
   const {
     register,
@@ -41,14 +47,13 @@ export default function RegisterPage() {
     const lastName = rest.join(' ') || firstName
 
     try {
-      await registerAccount({
+      const response = await registerAccount({
         firstName,
         lastName,
         email: values.email,
         password: values.password,
       })
-      // Registration succeeded — bypass email and go straight to dashboard
-      navigate('/')
+      setRegisteredEmail(response.email)
     } catch (error) {
       setError('root', {
         message: axios.isAxiosError(error)
@@ -58,13 +63,31 @@ export default function RegisterPage() {
     }
   }
 
+  if (registeredEmail) {
+    return (
+      <section className="mx-auto flex min-h-[60vh] max-w-xl items-center px-4 py-16 sm:px-6">
+        <div className="w-full rounded-lg border bg-card p-8 text-center shadow-sm">
+          <MailCheck className="mx-auto h-10 w-10 text-primary" />
+          <h1 className="mt-5 text-3xl font-semibold">Check your inbox</h1>
+          <p className="mt-3 text-muted-foreground">
+            We sent a verification link to <strong>{registeredEmail}</strong>. Verify the
+            address before signing in.
+          </p>
+          <Button asChild className="mt-6 w-full">
+            <Link to="/login">Continue to sign in</Link>
+          </Button>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="mx-auto grid max-w-5xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.9fr_1fr] lg:px-8">
       <div className="rounded-lg border bg-card p-6">
         <UserPlus className="h-7 w-7 text-primary" />
         <h1 className="mt-5 text-3xl font-semibold">Create account</h1>
         <p className="mt-2 text-muted-foreground">
-          Fill in your details below to instantly activate your account and start booking.
+          Create your account, then verify your email before signing in.
         </p>
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="rounded-lg border bg-card p-6">
