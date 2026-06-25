@@ -682,8 +682,8 @@ export default function AdminDashboard() {
   }, [catalogSearch])
 
   useEffect(() => {
-    if (generatedProductSku) {
-      setValue('sku', generatedProductSku, { shouldDirty: true, shouldValidate: true })
+    if (!editingProduct && generatedProductSku) {
+      // We only suggest it via placeholder now, don't force set it
     }
 
     if (!editingProduct && generatedProductSlug) {
@@ -1393,9 +1393,7 @@ export default function AdminDashboard() {
           : []
 
       const normalizedImageUrls = persistedImageUrls.filter((imageUrl): imageUrl is string => Boolean(imageUrl))
-      const resolvedSku = editingProduct
-        ? values.sku.trim().toUpperCase() || generatedProductSku
-        : generatedProductSku
+      const resolvedSku = values.sku?.trim().toUpperCase() || undefined
 
       const payload = {
         name: values.name.trim(),
@@ -1829,10 +1827,8 @@ export default function AdminDashboard() {
               <span className="font-medium uppercase tracking-[0.14em] text-[#6b7f9d]">SKU</span>
                 <Input
                   {...register('sku')}
-                  value={generatedProductSku || ''}
-                  readOnly
-                  placeholder="Auto-generated"
-                  className="h-12 rounded-xl border-[#dbe4f0] bg-[#f8fafc] shadow-[0_4px_14px_rgba(15,23,42,0.06)]"
+                  placeholder={generatedProductSku || "e.g. PROD-01"}
+                  className="h-12 rounded-xl border-[#dbe4f0] bg-white shadow-[0_4px_14px_rgba(15,23,42,0.06)]"
                 />
               <p className="text-xs text-muted-foreground">Auto-generated in sequence format like PROD-01.</p>
               {errors.sku ? <p className="text-xs text-destructive">{errors.sku.message}</p> : null}
