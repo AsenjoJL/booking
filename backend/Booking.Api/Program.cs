@@ -81,7 +81,8 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
-var redisEnabled = builder.Configuration.GetValue("Redis:Enabled", true);
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+var redisEnabled = builder.Configuration.GetValue("Redis:Enabled", !string.IsNullOrWhiteSpace(redisConnectionString));
 if (redisEnabled)
 {
     builder.Services.AddStackExchangeRedisCache(options =>

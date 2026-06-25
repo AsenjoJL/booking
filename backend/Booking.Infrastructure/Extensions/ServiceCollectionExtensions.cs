@@ -60,7 +60,11 @@ public static class ServiceCollectionExtensions
                     : 14;
         });
 
-        var redisEnabled = !bool.TryParse(configuration["Redis:Enabled"], out var parsedRedisEnabled) || parsedRedisEnabled;
+        var redisConnectionString = configuration["Redis:ConnectionString"];
+        var redisEnabled = !bool.TryParse(configuration["Redis:Enabled"], out var parsedRedisEnabled) 
+            ? !string.IsNullOrWhiteSpace(redisConnectionString) 
+            : parsedRedisEnabled;
+
         if (redisEnabled)
         {
             services.AddSingleton<IConnectionMultiplexer>(_ =>
