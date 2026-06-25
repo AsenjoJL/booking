@@ -12,7 +12,7 @@ namespace Booking.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class ProductsController(ISender sender, IProductService productService, IWebHostEnvironment environment) : ControllerBase
+public sealed class ProductsController(ISender sender, IProductService productService) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -81,6 +81,7 @@ public sealed class ProductsController(ISender sender, IProductService productSe
     [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<ActionResult<object>> UploadImage(
         IFormFile file,
+        [FromServices] IStorageService storageService,
         CancellationToken cancellationToken)
     {
         try
@@ -108,9 +109,6 @@ public sealed class ProductsController(ISender sender, IProductService productSe
                 return BadRequest(new { error = "Only JPG, PNG, WEBP, and GIF images are allowed." });
             }
 
-            var uploadsRoot = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "products");
-            Directory.CreateDirectory(uploadsRoot);
-
             var extension = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(extension))
             {
@@ -125,14 +123,10 @@ public sealed class ProductsController(ISender sender, IProductService productSe
             }
 
             var fileName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
-            var filePath = Path.Combine(uploadsRoot, fileName);
+            
+            await using var stream = file.OpenReadStream();
+            var imageUrl = await storageService.UploadImageAsync(stream, fileName, file.ContentType, cancellationToken);
 
-            await using (var stream = System.IO.File.Create(filePath))
-            {
-                await file.CopyToAsync(stream, cancellationToken);
-            }
-
-            var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/products/{fileName}";
             return Ok(new { imageUrl });
         }
         catch (Exception ex)

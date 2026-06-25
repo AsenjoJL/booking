@@ -92,6 +92,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrderService, OrderService>();
         services.AddTransient<IEmailService, EmailService>();
 
+        services.AddHttpClient<IStorageService, SupabaseStorageService>()
+            .AddTransientHttpErrorPolicy(policyBuilder =>
+                policyBuilder.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
         services.Configure<SmtpOptions>(options =>
             configuration.GetSection(SmtpOptions.SectionName).Bind(options));
 
