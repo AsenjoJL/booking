@@ -242,29 +242,6 @@ export default function CheckoutPage() {
               </Button>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="border bg-background p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d36d3d]">1</p>
-                <p className="mt-3 font-semibold text-foreground">Keep shopping freely</p>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  No forced login while browsing or adding products to the cart.
-                </p>
-              </div>
-              <div className="border bg-background p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d36d3d]">2</p>
-                <p className="mt-3 font-semibold text-foreground">Sign in only when ready</p>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  The cart merges into your account right after login or signup.
-                </p>
-              </div>
-              <div className="border bg-background p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d36d3d]">3</p>
-                <p className="mt-3 font-semibold text-foreground">Checkout resumes with your cart</p>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                  We send you back here so shipping details and order placement can continue.
-                </p>
-              </div>
-            </div>
 
             {guestReviewMode ? (
               <form className="mt-8 border bg-background p-5" onSubmit={placeGuestOrder}>
