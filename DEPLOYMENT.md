@@ -38,6 +38,12 @@ To ensure the backend runs correctly in production, the following Environment Va
 
 The production API validates these critical values during startup. A deployment with missing, local, or placeholder credentials will stop immediately instead of running with unsafe defaults.
 
+Render deployments may alternatively use `JWT_KEY` or `JWT_SECRET`, plus
+`SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, and `SMTP_FROM_NAME`.
+The .NET-style names in the table remain preferred. Environment variables must
+be attached to the production web service, not only to a preview service or an
+unlinked environment group.
+
 Use `/api/health` as the Render readiness health-check path. `/api/health/live` is available for liveness monitoring. The diagnostic CORS endpoint and Hangfire dashboard are unavailable in production by default.
 
 ### Persistent Data-Protection Keys

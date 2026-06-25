@@ -23,6 +23,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+MapDeploymentEnvironmentAliases(builder.Configuration);
 ValidateProductionConfiguration(builder.Configuration, builder.Environment);
 
 Log.Logger = new LoggerConfiguration()
@@ -362,6 +363,35 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
+static void MapDeploymentEnvironmentAliases(ConfigurationManager configuration)
+{
+    MapAlias("Jwt:Key", "JWT_KEY", "JWT_SECRET");
+    MapAlias("Smtp:Username", "SMTP_USERNAME", "SMTP_USER");
+    MapAlias("Smtp:Password", "SMTP_PASSWORD", "SMTP_PASS");
+    MapAlias("Smtp:FromEmail", "SMTP_FROM_EMAIL", "SMTP_FROM");
+    MapAlias("Smtp:FromName", "SMTP_FROM_NAME");
+
+    void MapAlias(string configurationKey, params string[] aliases)
+    {
+        if (!string.IsNullOrWhiteSpace(configuration[configurationKey]))
+        {
+            return;
+        }
+
+        foreach (var alias in aliases)
+        {
+            var value = Environment.GetEnvironmentVariable(alias);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            configuration[configurationKey] = value.Trim();
+            return;
+        }
+    }
+}
+
 static void ValidateProductionConfiguration(
     IConfiguration configuration,
     IWebHostEnvironment environment)
@@ -388,12 +418,20 @@ static void ValidateProductionConfiguration(
         errors.Add("ConnectionStrings__DefaultConnection must contain the production database connection.");
     }
 
-    if (string.IsNullOrWhiteSpace(jwtKey) ||
-        jwtKey.Length < 32 ||
-        jwtKey.Contains("development", StringComparison.OrdinalIgnoreCase) ||
-        jwtKey.Contains("replace-me", StringComparison.OrdinalIgnoreCase))
+    if (string.IsNullOrWhiteSpace(jwtKey))
     {
-        errors.Add("Jwt__Key must be a unique production secret of at least 32 characters.");
+        errors.Add("JWT signing key is missing. Set Jwt__Key, JWT_KEY, or JWT_SECRET.");
+    }
+    else if (jwtKey.Trim().Length < 32)
+    {
+        errors.Add(
+            $"JWT signing key is too short ({jwtKey.Trim().Length} characters). Use at least 32 characters.");
+    }
+    else if (jwtKey.Contains("development", StringComparison.OrdinalIgnoreCase) ||
+             jwtKey.Contains("replace-me", StringComparison.OrdinalIgnoreCase) ||
+             IsPlaceholder(jwtKey))
+    {
+        errors.Add("JWT signing key still contains a placeholder or development value.");
     }
 
     if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var frontendUri) ||
@@ -409,14 +447,24 @@ static void ValidateProductionConfiguration(
         errors.Add("SupabaseStorage__Url and SupabaseStorage__ServiceRoleKey are required in production.");
     }
 
-    if (string.IsNullOrWhiteSpace(smtpUsername) ||
-        string.IsNullOrWhiteSpace(smtpPassword) ||
-        string.IsNullOrWhiteSpace(smtpFromEmail) ||
-        IsPlaceholder(smtpUsername) ||
-        IsPlaceholder(smtpPassword) ||
-        IsPlaceholder(smtpFromEmail))
+    AddRequiredSecretError(
+        smtpUsername,
+        "SMTP username",
+        "Smtp__Username or SMTP_USERNAME");
+    AddRequiredSecretError(
+        smtpPassword,
+        "SMTP password",
+        "Smtp__Password or SMTP_PASSWORD");
+    AddRequiredSecretError(
+        smtpFromEmail,
+        "SMTP sender email",
+        "Smtp__FromEmail or SMTP_FROM_EMAIL");
+
+    if (!string.IsNullOrWhiteSpace(smtpFromEmail) &&
+        !IsPlaceholder(smtpFromEmail) &&
+        !System.Net.Mail.MailAddress.TryCreate(smtpFromEmail.Trim(), out _))
     {
-        errors.Add("Smtp__Username, Smtp__Password, and Smtp__FromEmail are required for email verification.");
+        errors.Add("SMTP sender email is not a valid email address.");
     }
 
     if (errors.Count > 0)
@@ -429,4 +477,16 @@ static void ValidateProductionConfiguration(
         value.Contains("YOUR_", StringComparison.OrdinalIgnoreCase) ||
         value.Contains("REPLACE", StringComparison.OrdinalIgnoreCase) ||
         value.Contains("EXAMPLE", StringComparison.OrdinalIgnoreCase);
+
+    void AddRequiredSecretError(string? value, string label, string acceptedKeys)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            errors.Add($"{label} is missing. Set {acceptedKeys}.");
+        }
+        else if (IsPlaceholder(value))
+        {
+            errors.Add($"{label} still contains a placeholder value.");
+        }
+    }
 }
