@@ -82,7 +82,15 @@ builder.Services.AddCors(options =>
     });
 });
 var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
-var redisEnabled = builder.Configuration.GetValue("Redis:Enabled", !string.IsNullOrWhiteSpace(redisConnectionString));
+var isDefaultLocalhost = redisConnectionString?.Contains("127.0.0.1") == true || redisConnectionString?.Contains("localhost") == true;
+var isProduction = !builder.Environment.IsDevelopment();
+
+var redisEnabled = builder.Configuration.GetValue("Redis:Enabled", true);
+if (redisEnabled && isProduction && isDefaultLocalhost)
+{
+    redisEnabled = false; // Force disable in production if still using default localhost
+}
+
 if (redisEnabled)
 {
     builder.Services.AddStackExchangeRedisCache(options =>

@@ -61,9 +61,14 @@ public static class ServiceCollectionExtensions
         });
 
         var redisConnectionString = configuration["Redis:ConnectionString"];
-        var redisEnabled = !bool.TryParse(configuration["Redis:Enabled"], out var parsedRedisEnabled) 
-            ? !string.IsNullOrWhiteSpace(redisConnectionString) 
-            : parsedRedisEnabled;
+        var isDefaultLocalhost = redisConnectionString?.Contains("127.0.0.1") == true || redisConnectionString?.Contains("localhost") == true;
+        var isProduction = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development";
+
+        var redisEnabled = !bool.TryParse(configuration["Redis:Enabled"], out var parsedRedisEnabled) || parsedRedisEnabled;
+        if (redisEnabled && isProduction && isDefaultLocalhost)
+        {
+            redisEnabled = false;
+        }
 
         if (redisEnabled)
         {
