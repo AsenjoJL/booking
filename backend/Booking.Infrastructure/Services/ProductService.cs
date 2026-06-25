@@ -301,7 +301,14 @@ public sealed class ProductService(
             inventory.PiecesOnHand = Math.Max(request.StockQuantity, 0);
             inventory.UpdatedAtUtc = DateTime.UtcNow;
             inventory.ConcurrencyStamp = Guid.NewGuid().ToString("N");
-            await inventoryLedgerService.SyncProductSnapshotAsync(product, variant, inventory, cancellationToken);
+            try
+            {
+                await inventoryLedgerService.SyncProductSnapshotAsync(product, variant, inventory, cancellationToken);
+            }
+            catch (DbUpdateException ex) when (IsUniqueSkuConflict(ex))
+            {
+                throw new ValidationException("The provided SKU is already in use by an active or deleted product. Please provide a different SKU.");
+            }
             await BumpCatalogVersionAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
@@ -388,7 +395,14 @@ public sealed class ProductService(
             inventory.PiecesOnHand = Math.Max(request.StockQuantity, 0);
             inventory.UpdatedAtUtc = DateTime.UtcNow;
             inventory.ConcurrencyStamp = Guid.NewGuid().ToString("N");
-            await inventoryLedgerService.SyncProductSnapshotAsync(product, variant, inventory, cancellationToken);
+            try
+            {
+                await inventoryLedgerService.SyncProductSnapshotAsync(product, variant, inventory, cancellationToken);
+            }
+            catch (DbUpdateException ex) when (IsUniqueSkuConflict(ex))
+            {
+                throw new ValidationException("The provided SKU is already in use by an active or deleted product. Please provide a different SKU.");
+            }
 
             await BumpCatalogVersionAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -758,6 +772,13 @@ public sealed class ProductService(
         return exception.InnerException is PostgresException postgresException
                && postgresException.SqlState == "23505"
                && string.Equals(postgresException.ConstraintName, "IX_Products_Slug", StringComparison.Ordinal);
+    }
+
+    private static bool IsUniqueSkuConflict(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException postgresException
+               && postgresException.SqlState == "23505"
+               && string.Equals(postgresException.ConstraintName, "IX_ProductVariants_Sku", StringComparison.Ordinal);
     }
 
     private static string NormalizeSlug(string? value)
