@@ -335,7 +335,18 @@ public sealed class AuthService(
             throw new ConflictException("This email address is already verified.");
         }
 
-        await SendVerificationEmailAsync(user, cancellationToken);
+        try
+        {
+            using var emailCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            emailCts.CancelAfter(TimeSpan.FromSeconds(20));
+            await SendVerificationEmailAsync(user, emailCts.Token);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Verification email failed to resend for user {UserId}.", user.Id);
+            throw new EmailDeliveryException(
+                "Verification email could not be sent. Please check the email address or try again later.");
+        }
     }
 
     private async Task SendVerificationEmailAsync(User user, CancellationToken cancellationToken)

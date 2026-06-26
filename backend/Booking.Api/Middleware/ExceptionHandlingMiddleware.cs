@@ -34,6 +34,7 @@ public sealed class ExceptionHandlingMiddleware(
             NotFoundException => (HttpStatusCode.NotFound, exception.Message),
             ConflictException => (HttpStatusCode.Conflict, exception.Message),
             ConcurrencyException => (HttpStatusCode.Conflict, exception.Message),
+            EmailDeliveryException => (HttpStatusCode.ServiceUnavailable, exception.Message),
             DbUpdateConcurrencyException => (HttpStatusCode.Conflict, "The resource was modified by another request."),
             _ => (
                 HttpStatusCode.InternalServerError,
