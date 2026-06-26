@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { MailCheck, UserPlus } from 'lucide-react'
+import { Loader2, MailCheck, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { rawApi } from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
 
 const registerSchema = z
@@ -31,7 +32,14 @@ type RegisterValues = z.infer<typeof registerSchema>
 export default function RegisterPage() {
   const registerAccount = useAuthStore((state) => state.register)
   const isLoading = useAuthStore((state) => state.isLoading)
-  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
+  const [registrationResult, setRegistrationResult] = useState<{
+    email: string
+    message: string
+    verificationEmailSent: boolean
+  } | null>(null)
+  const [isResending, setIsResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState<string | null>(null)
+  const [resendError, setResendError] = useState<string | null>(null)
 
   const {
     register,
@@ -53,7 +61,7 @@ export default function RegisterPage() {
         email: values.email,
         password: values.password,
       })
-      setRegisteredEmail(response.email)
+      setRegistrationResult(response)
     } catch (error) {
       setError('root', {
         message: axios.isAxiosError(error)
@@ -63,16 +71,67 @@ export default function RegisterPage() {
     }
   }
 
-  if (registeredEmail) {
+  const handleResend = async () => {
+    if (!registrationResult?.email) return
+
+    setIsResending(true)
+    setResendMessage(null)
+    setResendError(null)
+
+    try {
+      await rawApi.post('/auth/resend-verification', { email: registrationResult.email })
+      setRegistrationResult({
+        ...registrationResult,
+        verificationEmailSent: true,
+        message: 'Verification email sent. Please check your inbox.',
+      })
+      setResendMessage('Verification email sent. Please check your inbox.')
+    } catch (error) {
+      setResendError(
+        axios.isAxiosError(error)
+          ? (error.response?.data?.error as string | undefined) ??
+              'Failed to resend verification email.'
+          : 'Failed to resend verification email.',
+      )
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  if (registrationResult) {
     return (
       <section className="mx-auto flex min-h-[60vh] max-w-xl items-center px-4 py-16 sm:px-6">
         <div className="w-full rounded-lg border bg-card p-8 text-center shadow-sm">
           <MailCheck className="mx-auto h-10 w-10 text-primary" />
-          <h1 className="mt-5 text-3xl font-semibold">Check your inbox</h1>
+          <h1 className="mt-5 text-3xl font-semibold">
+            {registrationResult.verificationEmailSent ? 'Check your inbox' : 'Account created'}
+          </h1>
           <p className="mt-3 text-muted-foreground">
-            We sent a verification link to <strong>{registeredEmail}</strong>. Verify the
-            address before signing in.
+            {registrationResult.verificationEmailSent ? (
+              <>
+                We sent a verification link to <strong>{registrationResult.email}</strong>. Verify
+                the address before signing in.
+              </>
+            ) : (
+              <>
+                {registrationResult.message} Email:{' '}
+                <strong>{registrationResult.email}</strong>
+              </>
+            )}
           </p>
+          {!registrationResult.verificationEmailSent ? (
+            <Button className="mt-6 w-full" onClick={handleResend} disabled={isResending}>
+              {isResending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                </>
+              ) : (
+                'Resend verification email'
+              )}
+            </Button>
+          ) : null}
+          {resendMessage ? <p className="mt-3 text-sm text-green-600">{resendMessage}</p> : null}
+          {resendError ? <p className="mt-3 text-sm text-destructive">{resendError}</p> : null}
           <Button asChild className="mt-6 w-full">
             <Link to="/login">Continue to sign in</Link>
           </Button>

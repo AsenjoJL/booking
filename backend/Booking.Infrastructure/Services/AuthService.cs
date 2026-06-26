@@ -65,13 +65,16 @@ public sealed class AuthService(
 
         await userManager.AddToRoleAsync(user, "Customer");
 
+        var verificationEmailSent = false;
+
         // Registration remains valid if the provider is temporarily unavailable.
-        // The user can request another link from the verification screen.
+        // The UI exposes a resend action when delivery fails.
         try
         {
             using var emailCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            emailCts.CancelAfter(TimeSpan.FromSeconds(5));
+            emailCts.CancelAfter(TimeSpan.FromSeconds(20));
             await SendVerificationEmailAsync(user, emailCts.Token);
+            verificationEmailSent = true;
         }
         catch (Exception ex)
         {
@@ -81,7 +84,10 @@ public sealed class AuthService(
         return new RegistrationResponseDto
         {
             Email = user.Email ?? request.Email,
-            Message = "Account created. Check your email to verify the account before signing in."
+            Message = verificationEmailSent
+                ? "Account created. Check your email to verify the account before signing in."
+                : "Account created, but the verification email could not be sent. Please request a new verification link.",
+            VerificationEmailSent = verificationEmailSent
         };
     }
 

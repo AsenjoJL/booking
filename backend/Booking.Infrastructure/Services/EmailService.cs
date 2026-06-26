@@ -77,7 +77,7 @@ public sealed class EmailService(
             message.Body = new TextPart("html") { Text = htmlBody };
 
             using var client = new SmtpClient();
-            client.Timeout = 3000; // Force a strict 3-second timeout, bypassing the OS 21-second TCP SYN timeout
+            client.Timeout = 15000;
 
             var secureOption = _smtp.UseSsl
                 ? SecureSocketOptions.SslOnConnect

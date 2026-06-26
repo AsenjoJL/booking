@@ -17,4 +17,5 @@ export type AuthResponse = {
 export type RegistrationResponse = {
   email: string
   message: string
+  verificationEmailSent: boolean
 }
